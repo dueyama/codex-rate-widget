@@ -50,7 +50,7 @@ The helper does not edit the Xcode project or tracked files. It writes only `Con
 
 The Team ID is optional in the helper. If supplied, it is written only to the ignored local configuration. `$(TeamIdentifierPrefix)` is resolved from the signing team so the non-provisioned macOS App Group has the required `<Developer team identifier>.<group name>` form. Xcode and `xcodebuild` apply the local configuration automatically, with no extra command-line option.
 
-The menu app and every widget size show the same compact version label, such as `v1.0.0 (3)`. Both values come from `Config/Shared.xcconfig`, so the app and embedded extension cannot drift when the version is updated.
+The menu app and every widget size show the same compact version label, such as `v1.0.1`. The visible version and internal monotonically increasing build number both come from `Config/Shared.xcconfig`, so the app and embedded extension cannot drift when either value is updated.
 
 To install it manually:
 

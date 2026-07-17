@@ -29,6 +29,30 @@ final class UsageSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.otherWindows, [daily])
     }
 
+    func testDailyUsageHistoryFiltersAndSortsTheLastSevenDays() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 0))
+        let now = try XCTUnwrap(calendar.date(from: DateComponents(
+            year: 2026,
+            month: 7,
+            day: 17,
+            hour: 12
+        )))
+        let usage = [
+            DailyTokenUsage(startDate: "2026-07-17", tokens: 700),
+            DailyTokenUsage(startDate: "2026-07-10", tokens: 100),
+            DailyTokenUsage(startDate: "not-a-date", tokens: 900),
+            DailyTokenUsage(startDate: "2026-07-11", tokens: 200),
+            DailyTokenUsage(startDate: "2026-07-18", tokens: 800),
+            DailyTokenUsage(startDate: "2026-07-14", tokens: 500)
+        ]
+
+        let result = DailyUsageHistory.last(7, from: usage, through: now, calendar: calendar)
+
+        XCTAssertEqual(result.map(\.startDate), ["2026-07-11", "2026-07-14", "2026-07-17"])
+        XCTAssertEqual(result.map(\.tokens), [200, 500, 700])
+    }
+
     func testBuildVersionInfoFormatsResolvedBundleValues() throws {
         let version = try XCTUnwrap(BuildVersionInfo(infoDictionary: [
             "CFBundleShortVersionString": " 1.0.0 ",
@@ -37,7 +61,9 @@ final class UsageSnapshotTests: XCTestCase {
 
         XCTAssertEqual(version.shortVersion, "1.0.0")
         XCTAssertEqual(version.buildNumber, "3")
-        XCTAssertEqual(version.compactLabel, "v1.0.0 (3)")
+        XCTAssertEqual(version.compactLabel, "v1.0.0")
+        XCTAssertTrue(version.accessibilityLabel.contains("1.0.0"))
+        XCTAssertFalse(version.accessibilityLabel.contains("3"))
     }
 
     func testBuildVersionInfoRejectsMissingOrUnexpandedValues() {

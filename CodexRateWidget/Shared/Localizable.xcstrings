@@ -133,8 +133,8 @@
     "Usage limit" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "利用枠" } } }
     },
-    "Version %1$@, build %2$@" : {
-      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "バージョン %1$@、ビルド %2$@" } } }
+    "Version %@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "バージョン %@" } } }
     },
     "Weekly" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間" } } }

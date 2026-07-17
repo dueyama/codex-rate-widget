@@ -9,24 +9,21 @@ struct UsageEntry: TimelineEntry {
 
 struct UsageProvider: TimelineProvider {
     func placeholder(in context: Context) -> UsageEntry {
-        UsageEntry(date: .now, snapshot: .make(
+        let now = Date.now
+        return UsageEntry(date: now, snapshot: .make(
             windows: [
-                RateLimitWindow(usedPercent: 34, windowDurationMins: 300, resetsAt: Int(Date.now.addingTimeInterval(6_000).timeIntervalSince1970)),
-                RateLimitWindow(usedPercent: 28, windowDurationMins: 10_080, resetsAt: Int(Date.now.addingTimeInterval(400_000).timeIntervalSince1970))
+                RateLimitWindow(usedPercent: 34, windowDurationMins: 300, resetsAt: Int(now.addingTimeInterval(6_000).timeIntervalSince1970)),
+                RateLimitWindow(usedPercent: 28, windowDurationMins: 10_080, resetsAt: Int(now.addingTimeInterval(400_000).timeIntervalSince1970))
             ],
             planType: "pro",
-            dailyTokenUsage: [
-                .init(startDate: "2026-07-12", tokens: 230_000),
-                .init(startDate: "2026-07-13", tokens: 410_000),
-                .init(startDate: "2026-07-14", tokens: 180_000),
-                .init(startDate: "2026-07-15", tokens: 560_000)
-            ],
+            dailyTokenUsage: placeholderDailyUsage(through: now),
             lifetimeTokens: 12_345_678,
             projectUsage: [
                 .init(path: "/Projects/ExampleApp", tokens: 610_000),
                 .init(path: "/Projects/ResearchLab", tokens: 380_000),
                 .init(path: "/Projects/Documentation", tokens: 160_000)
-            ]
+            ],
+            updatedAt: now
         ))
     }
 
@@ -175,17 +172,7 @@ private struct LargeUsageView: View {
                         .font(.caption2).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, minHeight: 64)
                 } else {
-                    Chart(recentDailyUsage) { item in
-                        BarMark(
-                            x: .value(String(localized: "Day"), item.startDate),
-                            y: .value(String(localized: "Tokens"), item.tokens)
-                        )
-                        .foregroundStyle(.blue.gradient)
-                        .cornerRadius(3)
-                    }
-                    .chartXAxis(.hidden)
-                    .chartYAxis(.hidden)
-                    .frame(height: 64)
+                    DailyTokenChart(usage: recentDailyUsage)
                 }
             }
 
@@ -213,19 +200,57 @@ private struct LargeUsageView: View {
     }
 
     private var recentDailyUsage: [DailyTokenUsage] {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd"
-        let cutoff = Calendar.current.date(byAdding: .day, value: -6, to: .now) ?? .distantPast
-        return snapshot.dailyTokenUsage.filter {
-            guard let date = formatter.date(from: $0.startDate) else { return false }
-            return date >= Calendar.current.startOfDay(for: cutoff)
-        }
+        DailyUsageHistory.last(7, from: snapshot.dailyTokenUsage)
     }
 
     private var recentOfficialTokenTotal: Int64 {
         recentDailyUsage.reduce(0) { $0 + $1.tokens }
+    }
+}
+
+private struct DailyTokenChart: View {
+    let usage: [DailyTokenUsage]
+
+    var body: some View {
+        VStack(spacing: 2) {
+            HStack(spacing: 0) {
+                ForEach(usage) { item in
+                    Text(verbatim: tokenCountLabel(item.tokens))
+                        .font(.system(size: 8, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.55)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .accessibilityHidden(true)
+
+            Chart(usage) { item in
+                BarMark(
+                    x: .value(String(localized: "Day"), item.startDate),
+                    y: .value(String(localized: "Tokens"), item.tokens)
+                )
+                .foregroundStyle(.blue)
+                .cornerRadius(3)
+            }
+            .chartXAxis(.hidden)
+            .chartYAxis(.hidden)
+            .frame(height: 42)
+
+            HStack(spacing: 0) {
+                ForEach(usage) { item in
+                    Text(verbatim: dailyDateLabel(item.startDate))
+                        .font(.system(size: 8, weight: .medium, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .accessibilityHidden(true)
+        }
+        .frame(height: 68)
     }
 }
 
@@ -327,6 +352,11 @@ private func updateLabel(_ date: Date) -> String {
     )
 }
 
+private func dailyDateLabel(_ startDate: String) -> String {
+    guard let date = DailyUsageHistory.date(from: startDate) else { return startDate }
+    return date.formatted(.dateTime.month(.defaultDigits).day(.defaultDigits))
+}
+
 private func tokenCountLabel(_ tokens: Int64) -> String {
     if Locale.current.language.languageCode?.identifier == "ja", tokens >= 100_000_000 {
         return String(format: "%.1f億", Double(tokens) / 100_000_000)
@@ -335,4 +365,19 @@ private func tokenCountLabel(_ tokens: Int64) -> String {
         return String(format: "%.1f万", Double(tokens) / 10_000)
     }
     return tokens.formatted(.number.notation(.compactName))
+}
+
+private func placeholderDailyUsage(through now: Date) -> [DailyTokenUsage] {
+    let tokens: [Int64] = [230_000, 410_000, 180_000, 560_000, 320_000, 690_000, 270_000]
+    let formatter = DateFormatter()
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.dateFormat = "yyyy-MM-dd"
+
+    return tokens.enumerated().compactMap { index, tokenCount in
+        guard let date = Calendar.current.date(byAdding: .day, value: index - (tokens.count - 1), to: now) else {
+            return nil
+        }
+        return DailyTokenUsage(startDate: formatter.string(from: date), tokens: tokenCount)
+    }
 }

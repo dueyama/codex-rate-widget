@@ -19,14 +19,13 @@ struct BuildVersionInfo: Equatable, Sendable {
     }
 
     var compactLabel: String {
-        "v\(shortVersion) (\(buildNumber))"
+        "v\(shortVersion)"
     }
 
     var accessibilityLabel: String {
         String(
-            format: String(localized: "Version %1$@, build %2$@"),
-            shortVersion,
-            buildNumber
+            format: String(localized: "Version %@"),
+            shortVersion
         )
     }
 

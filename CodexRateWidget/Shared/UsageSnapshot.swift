@@ -74,6 +74,47 @@ struct DailyTokenUsage: Codable, Equatable, Identifiable, Sendable {
     var id: String { startDate }
 }
 
+enum DailyUsageHistory {
+    static func last(
+        _ dayCount: Int,
+        from usage: [DailyTokenUsage],
+        through now: Date = .now,
+        calendar: Calendar = .current
+    ) -> [DailyTokenUsage] {
+        guard dayCount > 0 else { return [] }
+
+        let today = calendar.startOfDay(for: now)
+        guard let firstDay = calendar.date(byAdding: .day, value: 1 - dayCount, to: today) else {
+            return []
+        }
+
+        return usage.filter { item in
+            guard let date = date(from: item.startDate, timeZone: calendar.timeZone) else {
+                return false
+            }
+            let day = calendar.startOfDay(for: date)
+            return day >= firstDay && day <= today
+        }
+        .sorted { $0.startDate < $1.startDate }
+    }
+
+    static func date(from startDate: String, timeZone: TimeZone = .current) -> Date? {
+        let formatter = DateFormatter()
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        formatter.calendar = calendar
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.isLenient = false
+
+        guard let date = formatter.date(from: startDate), formatter.string(from: date) == startDate else {
+            return nil
+        }
+        return date
+    }
+}
+
 struct ProjectTokenUsage: Codable, Equatable, Identifiable, Sendable {
     let path: String
     let tokens: Int64

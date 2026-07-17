@@ -144,17 +144,8 @@ actor CodexRateLimitClient {
     }
 
     private func recentOfficialTokens(_ usage: [DailyTokenUsage], now: Date = .now) -> Int64? {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd"
-        let cutoff = Calendar.current.startOfDay(
-            for: Calendar.current.date(byAdding: .day, value: -6, to: now) ?? .distantPast
-        )
-        let total = usage.reduce(Int64(0)) { result, item in
-            guard let date = formatter.date(from: item.startDate), date >= cutoff else { return result }
-            return result + item.tokens
-        }
+        let total = DailyUsageHistory.last(7, from: usage, through: now)
+            .reduce(Int64(0)) { $0 + $1.tokens }
         return total > 0 ? total : nil
     }
 
