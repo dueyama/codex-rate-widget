@@ -1,0 +1,12 @@
+// Public defaults. Keep personal signing values in the ignored Local.xcconfig.
+CODEX_RATE_WIDGET_BUNDLE_ID = com.example.CodexRateWidget
+CODEX_RATE_WIDGET_DEVELOPMENT_TEAM =
+
+// Single source of truth for the app and widget extension version.
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 3
+
+#include? "Local.xcconfig"
+
+// Apply one local Team consistently to the app, widget, and test targets.
+DEVELOPMENT_TEAM = $(CODEX_RATE_WIDGET_DEVELOPMENT_TEAM)

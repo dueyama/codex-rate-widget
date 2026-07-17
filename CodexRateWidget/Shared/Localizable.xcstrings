@@ -1,0 +1,150 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@ Active" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%@ 有効" } } }
+    },
+    "%@ Unavailable" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%@ 現在なし" } } }
+    },
+    "%d days" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d日間" } } }
+    },
+    "%d hours" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d時間" } } }
+    },
+    "%d minutes" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d分間" } } }
+    },
+    "5 hours" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "5時間" } } }
+    },
+    "5-hour limit" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "5時間枠" } } }
+    },
+    "Approx. %@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "約%@" } } }
+    },
+    "App Group is not configured. Select an Apple Development Team in Xcode." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "App Group が設定されていません。Xcode で Apple Development Team を選択してください。" } } }
+    },
+    "By Project · Last 7 Days" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロジェクト別 ・ 過去7日" } } }
+    },
+    "Codex CLI exited before responding. (exit code %d)%@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex CLI が応答前に終了しました。(終了コード %d)%@" } } }
+    },
+    "Codex CLI was not found. Install `codex`, then restart the app." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex CLI が見つかりません。`codex` をインストールし、アプリを再起動してください。" } } }
+    },
+    "Codex did not return a usage-limit window." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex の利用制限枠が返りませんでした。" } } }
+    },
+    "Codex Remaining Capacity" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex 残り容量" } } }
+    },
+    "Codex Usage" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex 利用状況" } } }
+    },
+    "Codex: %@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex: %@" } } }
+    },
+    "Could not launch Codex CLI: %@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex CLI を起動できません: %@" } } }
+    },
+    "Could not open App Group %@. Check Signing & Capabilities." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "App Group %@ を開けません。Signing & Capabilities を確認してください。" } } }
+    },
+    "Daily · Last 7 Days" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "日別 ・ 過去7日" } } }
+    },
+    "Daily account data is currently unavailable" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "アカウントの日別データは現在取得できません" } } }
+    },
+    "Day" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "日" } } }
+    },
+    "Last 7 days %@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "過去7日 %@" } } }
+    },
+    "Launch at Login" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "ログイン時に起動" } } }
+    },
+    "Launch the app to fetch usage" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "アプリを起動して取得" } } }
+    },
+    "Lifetime %@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "累計 %@" } } }
+    },
+    "Local Estimate · Unofficial" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "ローカル推定・非公式" } } }
+    },
+    "No active limit" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "利用枠なし" } } }
+    },
+    "No official 7-day total is available to estimate" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "推定に使える公式の過去7日合計がありません" } } }
+    },
+    "No local sessions are available to estimate" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "集計できるローカルセッションはありません" } } }
+    },
+    "Not fetched" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "未取得" } } }
+    },
+    "Official Tokens" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "公式トークン" } } }
+    },
+    "Quit" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "終了" } } }
+    },
+    "rateLimits/read result was empty." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "rateLimits/read の result が空です。" } } }
+    },
+    "Refresh now" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "今すぐ更新" } } }
+    },
+    "Remaining" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り" } } }
+    },
+    "Reset time unknown" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "リセット時刻不明" } } }
+    },
+    "Resets %@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%@ に回復" } } }
+    },
+    "Shows active Codex usage limits, token totals, and estimated usage by project." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex の有効な利用枠、トークン量、プロジェクト別の推定使用量を表示します。" } } }
+    },
+    "Timed out while fetching Codex usage." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex の利用状況取得がタイムアウトしました。" } } }
+    },
+    "Tokens" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "トークン" } } }
+    },
+    "Unavailable" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "現在なし" } } }
+    },
+    "Unexpected response from Codex.%@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex から予期しない応答を受け取りました。%@" } } }
+    },
+    "Updated %@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%@ 更新" } } }
+    },
+    "Usage limit" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "利用枠" } } }
+    },
+    "Version %1$@, build %2$@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "バージョン %1$@、ビルド %2$@" } } }
+    },
+    "Weekly" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間" } } }
+    },
+    "Weekly limit" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間枠" } } }
+    },
+    "Widget syncs every 15 minutes" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "ウィジェットは15分ごとに同期" } } }
+    }
+  },
+  "version" : "1.0"
+}

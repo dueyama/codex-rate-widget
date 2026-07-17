@@ -1,0 +1,116 @@
+# Architecture
+
+## Overview
+
+Codex Rate Widget has two executables that share a small JSON snapshot through an App Group. `CODEX_HOME` overrides the default `~/.codex` state location when it is set.
+
+```text
+Codex CLI app-server              ~/.codex/state_5.sqlite
+        |                                  |
+        | official account data            | read-only local activity
+        +----------------+-----------------+
+                         |
+                  Host menu-bar app
+                         |
+                  UsageSnapshot (~8 KB)
+                         |
+                    App Group file
+                         |
+                  WidgetKit extension
+```
+
+The size of a project directory does not affect this data path. Only stored thread metadata is queried; source trees are never enumerated.
+
+## Components
+
+| Component | Responsibility | Lifetime |
+| --- | --- | --- |
+| `UsageController` | Initial refresh, 15-minute scheduling, persistence, timeline reload | Host lifetime |
+| `CodexRateLimitClient` | Find Codex CLI, request account data, stop the child process | One request at a time |
+| `ProjectUsageAnalyzer` | Aggregate recent, non-subagent thread metadata by `cwd` | During refresh |
+| `SharedUsageStore` | Atomically save/load one Codable snapshot | Short file access |
+| Widget extension | Render the saved snapshot for three widget sizes | Managed by macOS |
+
+## Data provenance
+
+### Official
+
+- Remaining percentages and reset times: `account/rateLimits/read`
+- Daily token buckets and lifetime token total: `account/usage/read`
+
+These values may be shown as official account data because they are returned directly by Codex.
+
+### Estimated
+
+Codex does not return an official token breakdown by local project directory. The app therefore:
+
+1. Reads recent top-level, non-subagent rows from `threads`.
+2. Groups cumulative `tokens_used` by `cwd`.
+3. Uses those local proportions to allocate the official seven-day total.
+
+The result must always be labeled **Local Estimate · Unofficial**. It is not suitable for billing or auditing.
+
+The local counters are cumulative, not seven-day values. If Codex does not provide a positive official seven-day total, the analyzer returns no project rows. It must never fall back to displaying the raw counters.
+
+## Process lifecycle
+
+Each refresh launches `codex app-server --stdio`, sends initialize and two account requests, and terminates the process after a result, failure, or 45-second timeout. Both stdout and stderr use `FileHandle.readabilityHandler`.
+
+EOF handlers must be set to `nil` immediately. They must also be cleared in the shared finish path, along with the process termination handler and stdin. This prevents callback retain cycles and an EOF monitoring loop that can otherwise consume two CPU cores indefinitely.
+
+Stdout, stderr, timeout, and process termination can arrive concurrently. `RequestState` keeps all mutable request data in one lock-protected storage value, and `finish` atomically grants one caller the right to clean up and resume the continuation.
+
+## CLI discovery
+
+Discovery checks, in order:
+
+1. `CODEX_EXECUTABLE`
+2. The host process `PATH`
+3. Homebrew and common npm locations
+4. Volta, asdf, mise, and nvm locations
+
+The selected executable's directory is prepended to the child `PATH`, allowing a Node-based launcher to find the matching `node` executable after a GUI or login launch.
+
+## Signing and App Group
+
+`Config/Shared.xcconfig` contains public defaults and optionally includes the ignored `Config/Local.xcconfig`. The local file supplies one `CODEX_RATE_WIDGET_BUNDLE_ID` and one `CODEX_RATE_WIDGET_DEVELOPMENT_TEAM`; target bundle IDs and the shared App Group derive from those values.
+
+The tracked repository stores no Team ID. Xcode expands `$(TeamIdentifierPrefix)$(CODEX_RATE_WIDGET_BUNDLE_ID)` using the local signing identity. This produces Apple's non-provisioned macOS `<Developer team identifier>.<group name>` form. The expanded identifier is present in:
+
+- Both entitlements files
+- Both built Info.plist files under `CodexRateWidgetAppGroup`
+- The runtime `WidgetConstants.appGroup` value
+
+Never replace this with a committed personal Team ID or with `AppIdentifierPrefix`; older accounts can have an App ID prefix that differs from the signing Team ID macOS validates for this group form.
+
+## Test isolation
+
+The app executable is also the unit-test host. `AppRuntime` detects the XCTest environment and suppresses the automatic refresh loop, so normal tests never launch Codex or access an account. The explicit live test remains disabled unless `RUN_LIVE_CODEX_TEST=1` is set.
+
+## Version identity
+
+`MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` are defined once in `Config/Shared.xcconfig`. Both the app and widget Info.plists expand those values, and `BuildVersionInfo` reads the currently executing bundle to render the compact label. The version is not stored in the usage snapshot: a cached older extension therefore reports its own version instead of the host app's newer version.
+
+## Local persistence
+
+`SharedUsageStore` atomically overwrites one latest JSON snapshot in the App Group container and mirrors it in App Group preferences for compatibility with an older cached extension. The snapshot contains the original local `cwd` paths for the displayed project estimates; it is never sent by the app. The latest error message is stored separately in App Group preferences. There is no append-only usage history.
+
+## Localization
+
+English source strings are the fallback. `Localizable.xcstrings` supplies Japanese translations. Swift code should not introduce Japanese UI text directly, except the locale-specific Japanese compact-number units used by `tokenCountLabel`.
+
+## Performance expectations
+
+- Host and extension memory should remain in the tens of megabytes, not scale with project size.
+- The host should return to idle after each refresh.
+- The child app-server should not remain after the refresh completes.
+- The snapshot should remain small enough for trivial atomic file reads.
+
+## Failure behavior
+
+- Missing five-hour window: show it as unavailable; do not invent a limit.
+- Daily usage unavailable: retain remaining-capacity functionality.
+- Official seven-day total unavailable or zero: omit project estimates; never show raw cumulative thread counters.
+- Missing Codex CLI: show a localized actionable error.
+- Invalid App Group: show a localized signing/configuration error.
+- Schema or protocol change: fail without modifying the local Codex database.

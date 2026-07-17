@@ -1,0 +1,501 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 71;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* CodexRateWidgetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* CodexRateWidgetApp.swift */; };
+		A10000000000000000000002 /* UsageController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* UsageController.swift */; };
+		A10000000000000000000003 /* CodexRateLimitClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* CodexRateLimitClient.swift */; };
+		A10000000000000000000004 /* ProjectUsageAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* ProjectUsageAnalyzer.swift */; };
+		A10000000000000000000005 /* UsageSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* UsageSnapshot.swift */; };
+		A10000000000000000000006 /* CodexRateWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* CodexRateWidgetBundle.swift */; };
+		A10000000000000000000007 /* CodexUsageWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* CodexUsageWidget.swift */; };
+		A10000000000000000000008 /* UsageSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* UsageSnapshot.swift */; };
+		A10000000000000000000009 /* UsageSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* UsageSnapshotTests.swift */; };
+		A1000000000000000000000A /* CodexRateWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A30000000000000000000002 /* CodexRateWidgetExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A1000000000000000000000B /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* Localizable.xcstrings */; };
+		A1000000000000000000000C /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* Localizable.xcstrings */; };
+		A1000000000000000000000D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* Assets.xcassets */; };
+		A1000000000000000000000E /* BuildVersionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* BuildVersionInfo.swift */; };
+		A1000000000000000000000F /* BuildVersionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* BuildVersionInfo.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A40000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A90000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A70000000000000000000002;
+			remoteInfo = CodexRateWidgetExtension;
+		};
+		A40000000000000000000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A90000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A70000000000000000000001;
+			remoteInfo = CodexRateWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A50000000000000000000001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A1000000000000000000000A /* CodexRateWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		A20000000000000000000001 /* CodexRateWidgetApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexRateWidgetApp.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* UsageController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageController.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* CodexRateLimitClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexRateLimitClient.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* ProjectUsageAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectUsageAnalyzer.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* UsageSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageSnapshot.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* CodexRateWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexRateWidgetBundle.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* CodexUsageWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexUsageWidget.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* UsageSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageSnapshotTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A2000000000000000000000A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A2000000000000000000000B /* CodexRateWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CodexRateWidget.entitlements; sourceTree = "<group>"; };
+		A2000000000000000000000C /* CodexRateWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CodexRateWidgetExtension.entitlements; sourceTree = "<group>"; };
+		A2000000000000000000000D /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		A2000000000000000000000E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A2000000000000000000000F /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
+		A20000000000000000000010 /* BuildVersionInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildVersionInfo.swift; sourceTree = "<group>"; };
+		A30000000000000000000001 /* CodexRateWidget.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CodexRateWidget.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A30000000000000000000002 /* CodexRateWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CodexRateWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A30000000000000000000003 /* CodexRateWidgetTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CodexRateWidgetTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A60000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A60000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A60000000000000000000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A80000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A80000000000000000000008 /* Config */,
+				A80000000000000000000002 /* CodexRateWidget */,
+				A80000000000000000000006 /* CodexRateWidgetTests */,
+				A80000000000000000000007 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A80000000000000000000002 /* CodexRateWidget */ = {
+			isa = PBXGroup;
+			children = (
+				A80000000000000000000003 /* App */,
+				A80000000000000000000004 /* Shared */,
+				A80000000000000000000005 /* Widget */,
+			);
+			path = CodexRateWidget;
+			sourceTree = "<group>";
+		};
+		A80000000000000000000003 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001 /* CodexRateWidgetApp.swift */,
+				A20000000000000000000002 /* UsageController.swift */,
+				A20000000000000000000003 /* CodexRateLimitClient.swift */,
+				A20000000000000000000004 /* ProjectUsageAnalyzer.swift */,
+				A2000000000000000000000E /* Assets.xcassets */,
+				A20000000000000000000009 /* Info.plist */,
+				A2000000000000000000000B /* CodexRateWidget.entitlements */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A80000000000000000000004 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000010 /* BuildVersionInfo.swift */,
+				A20000000000000000000005 /* UsageSnapshot.swift */,
+				A2000000000000000000000D /* Localizable.xcstrings */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		A80000000000000000000005 /* Widget */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000006 /* CodexRateWidgetBundle.swift */,
+				A20000000000000000000007 /* CodexUsageWidget.swift */,
+				A2000000000000000000000A /* Info.plist */,
+				A2000000000000000000000C /* CodexRateWidgetExtension.entitlements */,
+			);
+			path = Widget;
+			sourceTree = "<group>";
+		};
+		A80000000000000000000006 /* CodexRateWidgetTests */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000008 /* UsageSnapshotTests.swift */,
+			);
+			path = CodexRateWidgetTests;
+			sourceTree = "<group>";
+		};
+		A80000000000000000000007 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A30000000000000000000001 /* CodexRateWidget.app */,
+				A30000000000000000000002 /* CodexRateWidgetExtension.appex */,
+				A30000000000000000000003 /* CodexRateWidgetTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A80000000000000000000008 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000F /* Shared.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A70000000000000000000001 /* CodexRateWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AB0000000000000000000001 /* Build configuration list for PBXNativeTarget "CodexRateWidget" */;
+			buildPhases = (
+				AC0000000000000000000001 /* Sources */,
+				A60000000000000000000001 /* Frameworks */,
+				AF0000000000000000000001 /* Resources */,
+				A50000000000000000000001 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AD0000000000000000000001 /* PBXTargetDependency */,
+			);
+			name = CodexRateWidget;
+			productName = CodexRateWidget;
+			productReference = A30000000000000000000001 /* CodexRateWidget.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A70000000000000000000002 /* CodexRateWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AB0000000000000000000002 /* Build configuration list for PBXNativeTarget "CodexRateWidgetExtension" */;
+			buildPhases = (
+				AC0000000000000000000002 /* Sources */,
+				A60000000000000000000002 /* Frameworks */,
+				AF0000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CodexRateWidgetExtension;
+			productName = CodexRateWidgetExtension;
+			productReference = A30000000000000000000002 /* CodexRateWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		A70000000000000000000003 /* CodexRateWidgetTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AB0000000000000000000003 /* Build configuration list for PBXNativeTarget "CodexRateWidgetTests" */;
+			buildPhases = (
+				AC0000000000000000000003 /* Sources */,
+				A60000000000000000000003 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AD0000000000000000000002 /* PBXTargetDependency */,
+			);
+			name = CodexRateWidgetTests;
+			productName = CodexRateWidgetTests;
+			productReference = A30000000000000000000003 /* CodexRateWidgetTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A90000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					A70000000000000000000001 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					A70000000000000000000002 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					A70000000000000000000003 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = A70000000000000000000001;
+					};
+				};
+			};
+			buildConfigurationList = AB0000000000000000000000 /* Build configuration list for PBXProject "CodexRateWidget" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				ja,
+			);
+			mainGroup = A80000000000000000000001;
+			productRefGroup = A80000000000000000000007 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A70000000000000000000001 /* CodexRateWidget */,
+				A70000000000000000000002 /* CodexRateWidgetExtension */,
+				A70000000000000000000003 /* CodexRateWidgetTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AF0000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000000D /* Assets.xcassets in Resources */,
+				A1000000000000000000000B /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AF0000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000000C /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AC0000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* CodexRateWidgetApp.swift in Sources */,
+				A10000000000000000000002 /* UsageController.swift in Sources */,
+				A10000000000000000000003 /* CodexRateLimitClient.swift in Sources */,
+				A10000000000000000000004 /* ProjectUsageAnalyzer.swift in Sources */,
+				A1000000000000000000000E /* BuildVersionInfo.swift in Sources */,
+				A10000000000000000000005 /* UsageSnapshot.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC0000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000006 /* CodexRateWidgetBundle.swift in Sources */,
+				A10000000000000000000007 /* CodexUsageWidget.swift in Sources */,
+				A1000000000000000000000F /* BuildVersionInfo.swift in Sources */,
+				A10000000000000000000008 /* UsageSnapshot.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC0000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000009 /* UsageSnapshotTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AD0000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A70000000000000000000002 /* CodexRateWidgetExtension */;
+			targetProxy = A40000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		AD0000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A70000000000000000000001 /* CodexRateWidget */;
+			targetProxy = A40000000000000000000002 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		AE0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000000000000000000000F /* Shared.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		AE0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A2000000000000000000000F /* Shared.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		AE0000000000000000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CodexRateWidget/App/CodexRateWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CodexRateWidget/App/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(CODEX_RATE_WIDGET_BUNDLE_ID)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AE0000000000000000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CodexRateWidget/App/CodexRateWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CodexRateWidget/App/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(CODEX_RATE_WIDGET_BUNDLE_ID)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+		AE0000000000000000000021 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = CodexRateWidget/Widget/CodexRateWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CodexRateWidget/Widget/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(CODEX_RATE_WIDGET_BUNDLE_ID).Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		AE0000000000000000000022 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = CodexRateWidget/Widget/CodexRateWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CodexRateWidget/Widget/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(CODEX_RATE_WIDGET_BUNDLE_ID).Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		AE0000000000000000000031 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(CODEX_RATE_WIDGET_BUNDLE_ID).Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CodexRateWidget.app/Contents/MacOS/CodexRateWidget";
+			};
+			name = Debug;
+		};
+		AE0000000000000000000032 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(CODEX_RATE_WIDGET_BUNDLE_ID).Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CodexRateWidget.app/Contents/MacOS/CodexRateWidget";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AB0000000000000000000000 /* Build configuration list for PBXProject "CodexRateWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE0000000000000000000001 /* Debug */,
+				AE0000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AB0000000000000000000001 /* Build configuration list for PBXNativeTarget "CodexRateWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE0000000000000000000011 /* Debug */,
+				AE0000000000000000000012 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AB0000000000000000000002 /* Build configuration list for PBXNativeTarget "CodexRateWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE0000000000000000000021 /* Debug */,
+				AE0000000000000000000022 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AB0000000000000000000003 /* Build configuration list for PBXNativeTarget "CodexRateWidgetTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE0000000000000000000031 /* Debug */,
+				AE0000000000000000000032 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A90000000000000000000001 /* Project object */;
+}
