@@ -39,6 +39,7 @@ REFS="$TEMP_DIR/refs.txt"
 ENTRIES="$TEMP_DIR/entries.bin"
 SCAN_FILE="$TEMP_DIR/content.bin"
 RAW_OBJECT="$TEMP_DIR/raw-object.bin"
+NORMALIZED_OBJECT="$TEMP_DIR/normalized-object.bin"
 RAW_MATCHES="$TEMP_DIR/raw-bundle-matches.txt"
 FINDINGS="$TEMP_DIR/findings.txt"
 EXTRA_PATTERN_SOURCE="$TEMP_DIR/extra-patterns.txt"
@@ -113,6 +114,32 @@ audit_identity_email() {
   esac
 }
 
+normalize_public_github_mailbox() {
+  local input_path="$1"
+  local output_path="$2"
+
+  # Dependabot adds this public GitHub support mailbox to Signed-off-by
+  # trailers. It is not a personal identity or secret. Keep this exemption
+  # exact so all other email addresses remain subject to the privacy audit.
+  sed -E 's#support@github\.com#<github-public-mailbox>#g' \
+    "$input_path" > "$output_path" 2>/dev/null
+}
+
+normalize_public_github_mailbox_in_raw_message() {
+  local input_path="$1"
+  local output_path="$2"
+
+  # Raw commit and tag objects contain identity headers before the first blank
+  # line. Normalize the public mailbox only in the message body so author,
+  # committer, tagger, and nonstandard headers remain fully audited.
+  awk '
+    BEGIN { in_message = 0 }
+    in_message { gsub(/support@github[.]com/, "<github-public-mailbox>") }
+    { print }
+    !in_message && $0 == "" { in_message = 1 }
+  ' "$input_path" > "$output_path" 2>/dev/null
+}
+
 audit_raw_git_object() {
   local git_object_type="$1"
   local git_object_name="$2"
@@ -136,10 +163,12 @@ audit_raw_git_object() {
 
   git cat-file "$git_object_type" "$git_object_name" > "$RAW_OBJECT" 2>/dev/null \
     || fail "a raw Git object could not be materialized for auditing"
+  normalize_public_github_mailbox_in_raw_message "$RAW_OBJECT" "$NORMALIZED_OBJECT" \
+    || fail "a raw Git object message could not be normalized for auditing"
   sed -E \
     -e "/${identity_line_pattern}/s#${github_user_noreply_suffix}#<github-no-reply>#g" \
     -e "/${identity_line_pattern}/s#${github_generic_noreply_pattern}#noreply<github-no-reply>#g" \
-    "$RAW_OBJECT" > "$SCAN_FILE" 2>/dev/null \
+    "$NORMALIZED_OBJECT" > "$SCAN_FILE" 2>/dev/null \
     || fail "a raw Git object could not be normalized for auditing"
   audit_materialized_content "$source_label" "$safe_label"
 }
@@ -168,8 +197,10 @@ echo "Scanning every reachable commit without printing matched private values...
 while IFS= read -r commit; do
   short_commit="$(git rev-parse --short=12 "$commit")"
 
-  git log -1 --format=%B "$commit" > "$SCAN_FILE" \
+  git log -1 --format=%B "$commit" > "$RAW_OBJECT" \
     || fail "a commit message could not be materialized for auditing"
+  normalize_public_github_mailbox "$RAW_OBJECT" "$SCAN_FILE" \
+    || fail "a commit message could not be normalized for auditing"
   if public_audit_file_has_private_content "$SCAN_FILE" "$ACTIVE_PATTERNS" "$RAW_MATCHES"; then
     printf '%s <commit message>\n' "$short_commit" >> "$FINDINGS"
   else
@@ -279,8 +310,10 @@ while IFS= read -r tag_ref; do
       ;;
   esac
 
-  git for-each-ref --format='%(contents)' "$tag_ref" > "$SCAN_FILE" \
+  git for-each-ref --format='%(contents)' "$tag_ref" > "$RAW_OBJECT" \
     || fail "an annotated tag message could not be materialized for auditing"
+  normalize_public_github_mailbox "$RAW_OBJECT" "$SCAN_FILE" \
+    || fail "an annotated tag message could not be normalized for auditing"
   audit_materialized_content "tag" "<annotated tag message>"
 done < "$TAGS"
 

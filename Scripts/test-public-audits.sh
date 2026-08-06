@@ -19,6 +19,7 @@ private_token='sk-''AAAAAAAAAAAAAAAAAAAAAAAA'
 private_bundle='private.example.''CodexRateWidget'
 private_absolute_path='/Users/''private/secret'
 private_email='private@''example.test'
+github_support_email='support@''github.com'
 assertion_counter=0
 
 new_fixture() {
@@ -206,6 +207,39 @@ git -C "$fixture" \
   commit --allow-empty -qm "message fixture $private_token"
 expect_failure_without_value \
   "private value in a commit message" "$fixture" "$private_token" \
+  Scripts/audit-public-history.sh
+
+fixture="$(new_fixture github-support-trailer)"
+git -C "$fixture" \
+  -c user.name='Public Audit' \
+  -c user.email="$audit_email" \
+  commit --allow-empty -q \
+    -m 'GitHub-maintained dependency fixture' \
+    -m "Signed-off-by: dependabot[bot] <$github_support_email>"
+expect_success \
+  "public GitHub support mailbox in a commit trailer" "$fixture" \
+  Scripts/audit-public-history.sh
+
+fixture="$(new_fixture private-email-trailer)"
+git -C "$fixture" \
+  -c user.name='Public Audit' \
+  -c user.email="$audit_email" \
+  commit --allow-empty -q \
+    -m 'Private trailer fixture' \
+    -m "Signed-off-by: Example <$private_email>"
+expect_failure_without_value \
+  "other email addresses in commit trailers remain private" "$fixture" "$private_email" \
+  Scripts/audit-public-history.sh
+
+fixture="$(new_fixture github-support-author)"
+GIT_AUTHOR_NAME='GitHub Support Fixture' \
+GIT_AUTHOR_EMAIL="$github_support_email" \
+git -C "$fixture" \
+  -c user.name='Public Audit' \
+  -c user.email="$audit_email" \
+  commit --allow-empty -qm 'GitHub support author fixture'
+expect_failure_without_value \
+  "public GitHub support mailbox is not an allowed author identity" "$fixture" "$github_support_email" \
   Scripts/audit-public-history.sh
 
 fixture="$(new_fixture author-email)"
