@@ -72,6 +72,8 @@ private struct MenuContent: View {
                 LimitCard(title: String(localized: "Weekly"), window: controller.snapshot.weekly)
             }
 
+            WeeklyResetRow(window: controller.snapshot.weekly)
+
             if let error = controller.errorMessage {
                 Label(error, systemImage: "exclamationmark.triangle.fill")
                     .font(.caption)
@@ -115,6 +117,39 @@ private struct MenuContent: View {
             format: String(localized: "Updated %@"),
             controller.snapshot.updatedAt.formatted(date: .omitted, time: .shortened)
         )
+    }
+}
+
+private struct WeeklyResetRow: View {
+    let window: RateLimitWindow?
+
+    var body: some View {
+        if let window {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Label("Weekly reset", systemImage: "calendar.badge.clock")
+                    .font(.caption.weight(.semibold))
+                Spacer(minLength: 8)
+                if let resetDate = window.resetDate {
+                    if let remaining = ResetScheduleFormatting.remainingDuration(until: resetDate) {
+                        VStack(alignment: .trailing, spacing: 1) {
+                            Text(verbatim: ResetScheduleFormatting.dateTime(resetDate))
+                            Text(String(format: String(localized: "%@ remaining"), remaining))
+                                .foregroundStyle(.secondary)
+                        }
+                        .font(.caption)
+                        .monospacedDigit()
+                    } else {
+                        Text("Refresh to update the weekly reset")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Text("Weekly reset time unknown")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
     }
 }
 

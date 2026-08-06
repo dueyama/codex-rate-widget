@@ -29,6 +29,53 @@ final class UsageSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.otherWindows, [daily])
     }
 
+    func testResetScheduleFormattingShowsDateAndRemainingTime() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 0))
+        let locale = Locale(identifier: "en_US")
+        let now = try XCTUnwrap(calendar.date(from: DateComponents(
+            year: 2026,
+            month: 8,
+            day: 6,
+            hour: 9,
+            minute: 30
+        )))
+        let resetDate = now.addingTimeInterval((4 * 86_400) + (5 * 3_600) + (23 * 60))
+
+        XCTAssertEqual(
+            ResetScheduleFormatting.remainingDuration(
+                until: resetDate,
+                now: now,
+                locale: locale,
+                calendar: calendar
+            ),
+            "4d 5h"
+        )
+        XCTAssertEqual(
+            ResetScheduleFormatting.dateTime(
+                resetDate,
+                locale: Locale(identifier: "ja_JP"),
+                timeZone: calendar.timeZone
+            ),
+            "8月10日 14:53"
+        )
+        XCTAssertNil(ResetScheduleFormatting.remainingDuration(
+            until: now,
+            now: now,
+            locale: locale,
+            calendar: calendar
+        ))
+        XCTAssertEqual(
+            ResetScheduleFormatting.remainingDuration(
+                until: now.addingTimeInterval(20),
+                now: now,
+                locale: locale,
+                calendar: calendar
+            ),
+            "1m"
+        )
+    }
+
     func testDailyUsageHistoryFiltersAndSortsTheLastSevenDays() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 0))
@@ -91,6 +138,10 @@ final class UsageSnapshotTests: XCTestCase {
                 table: nil
             ),
             "ローカル推定・非公式"
+        )
+        XCTAssertEqual(
+            japaneseBundle.localizedString(forKey: "Weekly reset", value: "Weekly reset", table: nil),
+            "週間リセット"
         )
     }
 

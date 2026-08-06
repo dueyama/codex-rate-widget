@@ -115,8 +115,7 @@ private struct MediumUsageView: View {
                     WidgetVersionLabel()
                 }
                 Spacer()
-                StatusText(title: String(localized: "5-hour limit"), active: snapshot.fiveHour != nil)
-                StatusText(title: String(localized: "Weekly limit"), active: snapshot.weekly != nil)
+                WeeklyResetDetails(window: snapshot.weekly)
             }
             Spacer()
             LimitRing(title: String(localized: "5 hours"), window: snapshot.fiveHour, size: 92)
@@ -139,6 +138,7 @@ private struct LargeUsageView: View {
                             .foregroundStyle(.secondary)
                         WidgetVersionLabel()
                     }
+                    WeeklyResetDetails(window: snapshot.weekly)
                 }
                 Spacer()
                 LimitRing(title: String(localized: "5 hours"), window: snapshot.fiveHour, size: 76)
@@ -254,6 +254,41 @@ private struct DailyTokenChart: View {
     }
 }
 
+private struct WeeklyResetDetails: View {
+    let window: RateLimitWindow?
+
+    var body: some View {
+        if let window {
+            if let resetDate = window.resetDate {
+                if let remaining = ResetScheduleFormatting.remainingDuration(until: resetDate) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Weekly reset")
+                            .font(.caption2.weight(.semibold))
+                        Text(verbatim: ResetScheduleFormatting.dateTime(resetDate))
+                            .font(.caption2.monospacedDigit())
+                        Text(String(format: String(localized: "%@ remaining"), remaining))
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                } else {
+                    resetStateText("Refresh to update the weekly reset")
+                }
+            } else {
+                resetStateText("Weekly reset time unknown")
+            }
+        }
+    }
+
+    private func resetStateText(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+            .lineLimit(2)
+    }
+}
+
 private struct LimitRing: View {
     let title: String
     let window: RateLimitWindow?
@@ -289,19 +324,6 @@ private struct LimitRing: View {
         if remaining <= 20 { return .red }
         if remaining <= 40 { return .orange }
         return .green
-    }
-}
-
-private struct StatusText: View {
-    let title: String
-    let active: Bool
-    var body: some View {
-        Label(
-            String(format: active ? String(localized: "%@ Active") : String(localized: "%@ Unavailable"), title),
-            systemImage: active ? "checkmark.circle.fill" : "minus.circle"
-        )
-            .font(.caption2)
-            .foregroundStyle(active ? .primary : .secondary)
     }
 }
 

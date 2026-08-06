@@ -14,8 +14,8 @@ Codex Rate Widget is a SwiftUI and WidgetKit app that displays your currently av
 ## What It Shows
 
 - Small: the remaining capacity of the primary active usage window
-- Medium: the remaining capacity of the five-hour and weekly usage windows
-- Large: the remaining capacity, official cumulative and daily token usage for the past seven days, and local estimated token usage by project on this Mac
+- Medium: the remaining capacity of the five-hour and weekly usage windows, plus the official weekly reset date and time remaining
+- Large: the remaining capacity, official weekly reset schedule, official cumulative and daily token usage for the past seven days, and local estimated token usage by project on this Mac
 
 The app does not assume that a five-hour window always exists. If Codex does not return a window with `windowDurationMins = 300`, the app shows it as currently unavailable. If the window is restored in a future response, the ring appears again automatically.
 
@@ -50,7 +50,7 @@ The helper does not edit the Xcode project or tracked files. It writes only `Con
 
 The Team ID is optional in the helper. If supplied, it is written only to the ignored local configuration. `$(TeamIdentifierPrefix)` is resolved from the signing team so the non-provisioned macOS App Group has the required `<Developer team identifier>.<group name>` form. Xcode and `xcodebuild` apply the local configuration automatically, with no extra command-line option.
 
-The menu app and every widget size show the same compact version label, such as `v1.0.1`. The visible version and internal monotonically increasing build number both come from `Config/Shared.xcconfig`, so the app and embedded extension cannot drift when either value is updated.
+The menu app and every widget size show the same compact version label, such as `v1.0.2`. The visible version and internal monotonically increasing build number both come from `Config/Shared.xcconfig`, so the app and embedded extension cannot drift when either value is updated.
 
 To install it manually:
 

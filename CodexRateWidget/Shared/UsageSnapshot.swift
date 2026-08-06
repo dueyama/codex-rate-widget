@@ -23,6 +23,50 @@ struct RateLimitWindow: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
+enum ResetScheduleFormatting {
+    static func dateTime(
+        _ date: Date,
+        locale: Locale = .current,
+        timeZone: TimeZone = .current
+    ) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.timeZone = timeZone
+        formatter.setLocalizedDateFormatFromTemplate("MMMdjm")
+        return formatter.string(from: date)
+    }
+
+    static func remainingDuration(
+        until resetDate: Date,
+        now: Date = .now,
+        locale: Locale = .current,
+        calendar: Calendar = .current
+    ) -> String? {
+        let interval = resetDate.timeIntervalSince(now)
+        guard interval > 0 else { return nil }
+
+        // Round up so an imminent reset never reads as zero minutes remaining.
+        let roundedInterval = ceil(interval / 60) * 60
+        let formatter = DateComponentsFormatter()
+        var localizedCalendar = calendar
+        localizedCalendar.locale = locale
+        formatter.calendar = localizedCalendar
+        formatter.unitsStyle = .abbreviated
+        formatter.maximumUnitCount = 2
+        formatter.zeroFormattingBehavior = .dropAll
+
+        if roundedInterval >= 86_400 {
+            formatter.allowedUnits = [.day, .hour]
+        } else if roundedInterval >= 3_600 {
+            formatter.allowedUnits = [.hour, .minute]
+        } else {
+            formatter.allowedUnits = [.minute]
+        }
+
+        return formatter.string(from: roundedInterval)
+    }
+}
+
 struct UsageSnapshot: Codable, Equatable, Sendable {
     let fiveHour: RateLimitWindow?
     let weekly: RateLimitWindow?

@@ -7,6 +7,9 @@
     "%@ Unavailable" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%@ 現在なし" } } }
     },
+    "%@ remaining" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り %@" } } }
+    },
     "%d days" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d日間" } } }
     },
@@ -103,6 +106,9 @@
     "Refresh now" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "今すぐ更新" } } }
     },
+    "Refresh to update the weekly reset" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "更新して週間リセットを取得" } } }
+    },
     "Remaining" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り" } } }
     },
@@ -138,6 +144,12 @@
     },
     "Weekly" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間" } } }
+    },
+    "Weekly reset" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間リセット" } } }
+    },
+    "Weekly reset time unknown" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間リセット日時不明" } } }
     },
     "Weekly limit" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間枠" } } }
