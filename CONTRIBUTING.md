@@ -16,7 +16,7 @@ Unit tests do not access a live Codex account. The live integration test runs on
 - Treat Codex `account/*` methods and the local SQLite schema as unstable implementation interfaces. Decode defensively and preserve partial functionality.
 - Label account totals and limits as official only when they came from Codex account methods. Project attribution is always a local estimate.
 - Do not scan project directories. Read only the minimal local thread metadata needed for aggregation.
-- Keep process and account work in the host app. The widget extension only reads a saved snapshot.
+- Keep process and account work in the host app. The widget extension only reads saved App Group data and updates display preferences through App Intents.
 - Keep Swift source strings in English and add Japanese translations to `Localizable.xcstrings` for user-visible changes.
 - Preserve the shared App Group derivation and process-lifecycle invariants described in `AGENTS.md`.
 

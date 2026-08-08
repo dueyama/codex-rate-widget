@@ -12,7 +12,7 @@ Codex CLI app-server              ~/.codex/state_5.sqlite
                          |
                   Host menu-bar app
                          |
-                  UsageSnapshot (~8 KB)
+             UsageSnapshot + bounded history
                          |
                     App Group file
                          |
@@ -29,7 +29,8 @@ The size of a project directory does not affect this data path. Only stored thre
 | `CodexRateLimitClient` | Find Codex CLI, request account data, stop the child process | One request at a time |
 | `ProjectUsageAnalyzer` | Aggregate recent, non-subagent thread metadata by `cwd` | During refresh |
 | `SharedUsageStore` | Atomically save/load one Codable snapshot | Short file access |
-| Widget extension | Render the saved snapshot for three widget sizes | Managed by macOS |
+| `SharedRemainingUsageHistoryStore` | Atomically save/load at most seven days of 15-minute remaining-capacity samples | Short file access |
+| Widget extension | Render saved data for three widget sizes and handle chart-selection App Intents | Managed by macOS |
 
 ## Data provenance
 
@@ -39,6 +40,12 @@ The size of a project directory does not affect this data path. Only stored thre
 - Daily token buckets and lifetime token total: `account/usage/read`
 
 These values may be shown as official account data because they are returned directly by Codex.
+
+### Locally recorded official observations
+
+Codex returns the current remaining percentage but does not return a historical remaining-capacity series. After each successful refresh, the host records the current official five-hour and weekly values in a 15-minute bucket. The large widget can display those local observations over 24 hours or seven days.
+
+This chart must be labeled as recorded on this Mac. It must not imply that Codex supplied a historical series, interpolate periods when the app was not recording, or invent a five-hour value while that window is absent. An observed increase at a reset remains visible in the recorded series.
 
 ### Estimated
 
@@ -93,7 +100,9 @@ The app executable is also the unit-test host. `AppRuntime` detects the XCTest e
 
 ## Local persistence
 
-`SharedUsageStore` atomically overwrites one latest JSON snapshot in the App Group container and mirrors it in App Group preferences for compatibility with an older cached extension. The snapshot contains the original local `cwd` paths for the displayed project estimates; it is never sent by the app. The latest error message is stored separately in App Group preferences. There is no append-only usage history.
+`SharedUsageStore` atomically overwrites one latest JSON snapshot in the App Group container and mirrors it in App Group preferences for compatibility with an older cached extension. The snapshot contains the original local `cwd` paths for the displayed project estimates; it is never sent by the app.
+
+`SharedRemainingUsageHistoryStore` uses a separate atomically rewritten JSON file. It replaces repeated observations in the same 15-minute bucket and removes samples older than seven days, keeping storage and rendering cost bounded. Chart selection, time range, and the latest error message use App Group preferences. None of these files are sent by the app.
 
 ## Localization
 
@@ -104,11 +113,13 @@ English source strings are the fallback. `Localizable.xcstrings` supplies Japane
 - Host and extension memory should remain in the tens of megabytes, not scale with project size.
 - The host should return to idle after each refresh.
 - The child app-server should not remain after the refresh completes.
-- The snapshot should remain small enough for trivial atomic file reads.
+- The snapshot and bounded seven-day history should remain small enough for trivial atomic file reads.
 
 ## Failure behavior
 
 - Missing five-hour window: show it as unavailable; do not invent a limit.
+- Missing or insufficient local history: preserve the official daily-token view and explain that recording starts after an app refresh.
+- Recording gaps and missing windows: split the remaining-capacity line rather than interpolate across them.
 - Daily usage unavailable: retain remaining-capacity functionality.
 - Official seven-day total unavailable or zero: omit project estimates; never show raw cumulative thread counters.
 - Missing Codex CLI: show a localized actionable error.

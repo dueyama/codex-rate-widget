@@ -15,7 +15,7 @@ Codex Rate Widget is a SwiftUI and WidgetKit app that displays your currently av
 
 - Small: the remaining capacity of the primary active usage window
 - Medium: the remaining capacity of the five-hour and weekly usage windows, plus the official weekly reset date and time remaining
-- Large: the remaining capacity, official weekly reset schedule, official cumulative and daily token usage for the past seven days, and local estimated token usage by project on this Mac
+- Large: the remaining capacity, official weekly reset schedule, local estimated token usage by project, and an interactive chart that switches between official daily token usage and remaining-capacity history recorded on this Mac for the past 24 hours or seven days
 
 The app does not assume that a five-hour window always exists. If Codex does not return a window with `windowDurationMins = 300`, the app shows it as currently unavailable. If the window is restored in a future response, the ring appears again automatically.
 
@@ -24,7 +24,10 @@ The app does not assume that a five-hour window always exists. If Codex does not
 - Remaining capacity: the installed Codex CLI app server's `account/rateLimits/read` method
 - Daily token usage: `account/usage/read`
 - Official token usage: cumulative totals and daily buckets returned by Codex's `account/usage/read` method
+- Remaining-capacity history: the host app's bounded local record of current official `account/rateLimits/read` values, sampled after successful refreshes and retained for seven days
 - Per-project usage: a read-only aggregation of top-level local sessions in `$CODEX_HOME/state_5.sqlite`, or `~/.codex/state_5.sqlite` when `CODEX_HOME` is unset, that were updated during the seven-day period including today, grouped by `cwd`; this can include user sessions, automations, and legacy rows with an unknown source. The app uses those proportions to estimate how the official seven-day token total is distributed among projects. Subagents are excluded to avoid counting inherited parent context twice.
+
+The remaining-capacity chart is not an official historical series returned by Codex. It is a local history of official current values observed by this Mac every 15 minutes while the host app is running. The chart leaves gaps when the app was not recording, retains observed jumps when a limit resets, and automatically resumes the five-hour series if Codex reports that window again.
 
 The per-project figures are estimates that distribute the official seven-day total according to locally observed proportions. A thread's `tokens_used` value is cumulative, so the app uses it only to calculate the proportions between projects; the displayed total comes from Codex's official aggregate. If that official total is unavailable or zero, the app does not display raw local counters as project usage. Cloud runs and activity on other Macs cannot be attributed to a local project, so this is not an exact breakdown.
 
@@ -50,7 +53,7 @@ The helper does not edit the Xcode project or tracked files. It writes only `Con
 
 The Team ID is optional in the helper. If supplied, it is written only to the ignored local configuration. `$(TeamIdentifierPrefix)` is resolved from the signing team so the non-provisioned macOS App Group has the required `<Developer team identifier>.<group name>` form. Xcode and `xcodebuild` apply the local configuration automatically, with no extra command-line option.
 
-The menu app and every widget size show the same compact version label, such as `v1.0.2`. The visible version and internal monotonically increasing build number both come from `Config/Shared.xcconfig`, so the app and embedded extension cannot drift when either value is updated.
+The menu app and every widget size show the same compact version label, such as `v1.1.0`. The visible version and internal monotonically increasing build number both come from `Config/Shared.xcconfig`, so the app and embedded extension cannot drift when either value is updated.
 
 To install it manually:
 
@@ -61,7 +64,7 @@ To install it manually:
 5. Confirm the first successful refresh in the menu bar, then open Edit Widgets on the desktop and add the localized `Codex Remaining Capacity` widget.
 6. To keep the data synchronized automatically, enable Launch at Login from the app's menu.
 
-The app detects Codex CLI through the current `PATH`, common Homebrew and npm locations, nvm, mise, asdf, Volta, or the `CODEX_EXECUTABLE` environment variable. The app refreshes every 15 minutes, and the widget reads the snapshot stored in the App Group container.
+The app detects Codex CLI through the current `PATH`, common Homebrew and npm locations, nvm, mise, asdf, Volta, or the `CODEX_EXECUTABLE` environment variable. The app refreshes every 15 minutes, records a bounded seven-day remaining-capacity history after successful refreshes, and lets the widget read both files from the App Group container. Enable Launch at Login if you want the history to continue across Mac restarts and login sessions.
 
 The repository intentionally does not contain an Apple Development Team ID, certificate, private key, or provisioning profile. Keep personal values in `Config/Local.xcconfig`; do not copy them into `project.pbxproj`, `Config/Shared.xcconfig`, or another tracked file. The local file can be deleted and regenerated at any time.
 
@@ -71,7 +74,7 @@ English is the development and fallback language. Japanese translations are used
 
 ## Resource Use
 
-The app queries the Codex app server briefly every 15 minutes and then returns to idle. It does not scan project directories or load project contents. Per-project estimates come from a read-only SQL aggregation of `$CODEX_HOME/state_5.sqlite`, or `~/.codex/state_5.sqlite` when `CODEX_HOME` is unset.
+The app queries the Codex app server briefly every 15 minutes and then returns to idle. It does not scan project directories or load project contents. Per-project estimates come from a read-only SQL aggregation of `$CODEX_HOME/state_5.sqlite`, or `~/.codex/state_5.sqlite` when `CODEX_HOME` is unset. Remaining-capacity history is capped at seven days: at a 15-minute cadence it contains at most about 673 samples, with both supported windows stored in each sample.
 
 ## Privacy and Stability
 

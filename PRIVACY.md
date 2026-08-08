@@ -23,7 +23,9 @@ The app overwrites one latest usage snapshot in the configured App Group contain
 - locally estimated project totals and their original `cwd` paths; and
 - the last successful update time.
 
-The app also stores the latest error message in App Group preferences. It does not build a separate usage history. A successful refresh replaces the previous snapshot.
+The app also stores a separate bounded remaining-capacity history in the App Group container. After each successful refresh, it records the observation time and the available five-hour and weekly remaining percentages. Samples are grouped into 15-minute buckets and observations older than seven days are deleted. The history contains no project paths and is atomically rewritten rather than appended without limit.
+
+The selected large-widget chart and remaining-history time scale are stored in App Group preferences. The latest error message is stored there as well.
 
 Launch at Login is registered through macOS `SMAppService`; macOS owns that registration.
 
@@ -33,6 +35,6 @@ Codex Rate Widget has no direct networking client and sends no telemetry, analyt
 
 ## Removing Local Data
 
-Disable Launch at Login from the menu-bar app, quit it, remove the app, and remove its App Group container if you also want to delete the saved snapshot. The resolved App Group identifier is the signing Team identifier followed by the locally configured app Bundle Identifier; it is not the public `com.example` placeholder.
+Disable Launch at Login from the menu-bar app, quit it, remove the app, and remove its App Group container if you also want to delete the saved snapshot, remaining-capacity history, and widget preferences. The resolved App Group identifier is the signing Team identifier followed by the locally configured app Bundle Identifier; it is not the public `com.example` placeholder.
 
 Do not attach `state_5.sqlite`, App Group snapshots, `Config/Local.xcconfig`, or unredacted logs to a public issue.

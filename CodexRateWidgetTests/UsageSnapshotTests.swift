@@ -100,6 +100,67 @@ final class UsageSnapshotTests: XCTestCase {
         XCTAssertEqual(result.map(\.tokens), [200, 500, 700])
     }
 
+    func testRemainingHistoryKeepsSevenDaysAndReplacesTheCurrentQuarterHour() {
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        let expiredDate = now.addingTimeInterval(-RemainingUsageHistory.retentionInterval - 1)
+        let firstSnapshot = UsageSnapshot.make(windows: [
+            RateLimitWindow(usedPercent: 40, windowDurationMins: 300, resetsAt: 2_000_001_000),
+            RateLimitWindow(usedPercent: 20, windowDurationMins: 10_080, resetsAt: 2_000_500_000)
+        ], planType: "pro", updatedAt: now)
+        let replacementSnapshot = UsageSnapshot.make(windows: [
+            RateLimitWindow(usedPercent: 45, windowDurationMins: 300, resetsAt: 2_000_001_000),
+            RateLimitWindow(usedPercent: 25, windowDurationMins: 10_080, resetsAt: 2_000_500_000)
+        ], planType: "pro", updatedAt: now.addingTimeInterval(60))
+
+        let history = RemainingUsageHistory.empty
+            .recording(firstSnapshot, at: expiredDate)
+            .recording(firstSnapshot, at: now)
+            .recording(replacementSnapshot, at: now.addingTimeInterval(60))
+
+        XCTAssertEqual(history.samples.count, 1)
+        XCTAssertEqual(history.samples.first?.fiveHourRemainingPercent, 55)
+        XCTAssertEqual(history.samples.first?.weeklyRemainingPercent, 75)
+        XCTAssertEqual(history.samples.first?.capturedAt, now.addingTimeInterval(60))
+    }
+
+    func testRemainingHistoryFiltersRangesAndBreaksLinesAtGapsAndMissingWindows() {
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        let history = RemainingUsageHistory(samples: [
+            .init(capturedAt: now.addingTimeInterval(-25 * 3_600), fiveHourRemainingPercent: nil, weeklyRemainingPercent: 90),
+            .init(capturedAt: now.addingTimeInterval(-4 * 3_600), fiveHourRemainingPercent: nil, weeklyRemainingPercent: 80),
+            .init(capturedAt: now.addingTimeInterval((-4 * 3_600) + 900), fiveHourRemainingPercent: nil, weeklyRemainingPercent: 78),
+            .init(capturedAt: now.addingTimeInterval((-4 * 3_600) + 1_800), fiveHourRemainingPercent: nil, weeklyRemainingPercent: 100),
+            .init(capturedAt: now.addingTimeInterval(-2 * 3_600), fiveHourRemainingPercent: nil, weeklyRemainingPercent: 95),
+            .init(capturedAt: now.addingTimeInterval(-3_600), fiveHourRemainingPercent: nil, weeklyRemainingPercent: nil),
+            .init(capturedAt: now.addingTimeInterval(-2_700), fiveHourRemainingPercent: nil, weeklyRemainingPercent: 92)
+        ])
+
+        let oneDayPoints = history.chartPoints(in: .oneDay, through: now)
+            .filter { $0.kind == .weekly }
+        XCTAssertEqual(oneDayPoints.map(\.remainingPercent), [80, 78, 100, 95, 92])
+        XCTAssertEqual(oneDayPoints.map(\.segment), [0, 0, 0, 1, 2])
+
+        let sevenDayPoints = history.chartPoints(in: .sevenDays, through: now)
+            .filter { $0.kind == .weekly }
+        XCTAssertEqual(sevenDayPoints.first?.remainingPercent, 90)
+        XCTAssertEqual(sevenDayPoints.count, 6)
+    }
+
+    func testWidgetDisplayPreferencesUseSafeDefaultsAndPersistSelections() throws {
+        let suiteName = "CodexRateWidgetTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        XCTAssertEqual(WidgetDisplayPreferences.chartMode(defaults: defaults), .officialTokens)
+        XCTAssertEqual(WidgetDisplayPreferences.historyRange(defaults: defaults), .oneDay)
+
+        WidgetDisplayPreferences.save(chartMode: .remainingHistory, defaults: defaults)
+        WidgetDisplayPreferences.save(historyRange: .sevenDays, defaults: defaults)
+
+        XCTAssertEqual(WidgetDisplayPreferences.chartMode(defaults: defaults), .remainingHistory)
+        XCTAssertEqual(WidgetDisplayPreferences.historyRange(defaults: defaults), .sevenDays)
+    }
+
     func testBuildVersionInfoFormatsResolvedBundleValues() throws {
         let version = try XCTUnwrap(BuildVersionInfo(infoDictionary: [
             "CFBundleShortVersionString": " 1.0.0 ",
@@ -142,6 +203,26 @@ final class UsageSnapshotTests: XCTestCase {
         XCTAssertEqual(
             japaneseBundle.localizedString(forKey: "Weekly reset", value: "Weekly reset", table: nil),
             "週間リセット"
+        )
+        XCTAssertEqual(
+            japaneseBundle.localizedString(
+                forKey: "Recorded on This Mac · Every 15 Minutes",
+                value: "Recorded on This Mac · Every 15 Minutes",
+                table: nil
+            ),
+            "このMacの記録・15分間隔"
+        )
+        XCTAssertEqual(
+            japaneseBundle.localizedString(forKey: "Daily Usage", value: "Daily Usage", table: nil),
+            "日別使用量"
+        )
+        XCTAssertEqual(
+            japaneseBundle.localizedString(
+                forKey: "Remaining History",
+                value: "Remaining History",
+                table: nil
+            ),
+            "残り推移"
         )
     }
 

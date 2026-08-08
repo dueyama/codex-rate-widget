@@ -31,7 +31,13 @@ final class UsageController: ObservableObject {
             let newSnapshot = try await client.fetch()
             try SharedUsageStore.save(newSnapshot)
             snapshot = newSnapshot
-            errorMessage = nil
+            do {
+                try SharedRemainingUsageHistoryStore.record(newSnapshot)
+                errorMessage = nil
+            } catch {
+                errorMessage = error.localizedDescription
+                SharedUsageStore.save(error: error)
+            }
             WidgetCenter.shared.reloadTimelines(ofKind: WidgetConstants.widgetKind)
         } catch {
             errorMessage = error.localizedDescription

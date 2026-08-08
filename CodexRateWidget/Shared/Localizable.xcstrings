@@ -25,6 +25,18 @@
     "5-hour limit" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "5時間枠" } } }
     },
+    "24 Hours" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "24時間" } } }
+    },
+    "24h" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "24時間" } } }
+    },
+    "7 Days" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "7日間" } } }
+    },
+    "7d" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "7日" } } }
+    },
     "Approx. %@" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "約%@" } } }
     },
@@ -33,6 +45,15 @@
     },
     "By Project · Last 7 Days" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロジェクト別 ・ 過去7日" } } }
+    },
+    "Change remaining history range" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り容量履歴の期間を変更" } } }
+    },
+    "Change usage chart" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "利用状況グラフを変更" } } }
+    },
+    "Chart" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "グラフ" } } }
     },
     "Codex CLI exited before responding. (exit code %d)%@" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex CLI が応答前に終了しました。(終了コード %d)%@" } } }
@@ -67,6 +88,12 @@
     "Day" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "日" } } }
     },
+    "History begins after the app's next refresh" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "次回のアプリ更新後から履歴を記録します" } } }
+    },
+    "History range" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "履歴期間" } } }
+    },
     "Last 7 days %@" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "過去7日 %@" } } }
     },
@@ -94,11 +121,14 @@
     "Not fetched" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "未取得" } } }
     },
-    "Official Tokens" : {
-      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "公式トークン" } } }
+    "Daily Usage" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "日別使用量" } } }
     },
     "Quit" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "終了" } } }
+    },
+    "Range" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "期間" } } }
     },
     "rateLimits/read result was empty." : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "rateLimits/read の result が空です。" } } }
@@ -109,8 +139,17 @@
     "Refresh to update the weekly reset" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "更新して週間リセットを取得" } } }
     },
+    "Recorded on This Mac · Every 15 Minutes" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "このMacの記録・15分間隔" } } }
+    },
     "Remaining" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り" } } }
+    },
+    "Remaining %" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り％" } } }
+    },
+    "Remaining History" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り推移" } } }
     },
     "Reset time unknown" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "リセット時刻不明" } } }
@@ -121,8 +160,23 @@
     "Shows active Codex usage limits, token totals, and estimated usage by project." : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex の有効な利用枠、トークン量、プロジェクト別の推定使用量を表示します。" } } }
     },
+    "Shows active Codex usage limits, token totals, remaining-capacity history, and estimated usage by project." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex の有効な利用枠、トークン量、残り容量の履歴、プロジェクト別の推定使用量を表示します。" } } }
+    },
+    "Series" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "系列" } } }
+    },
+    "Switches the large widget between daily token usage and locally recorded remaining capacity." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "大型ウィジェットを日別トークン使用量とローカル記録の残り容量で切り替えます。" } } }
+    },
+    "Switches the remaining-capacity chart between the past 24 hours and the past 7 days." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り容量グラフを過去24時間と過去7日で切り替えます。" } } }
+    },
     "Timed out while fetching Codex usage." : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex の利用状況取得がタイムアウトしました。" } } }
+    },
+    "Time" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "時刻" } } }
     },
     "Tokens" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "トークン" } } }
@@ -138,6 +192,9 @@
     },
     "Usage limit" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "利用枠" } } }
+    },
+    "Usage chart" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "利用状況グラフ" } } }
     },
     "Version %@" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "バージョン %@" } } }

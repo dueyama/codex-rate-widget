@@ -100,6 +100,6 @@ Before launching the app, run `pgrep -x CodexRateWidget` to find only exact proc
 
 ### The widget remains visible after quitting the app
 
-This is expected. macOS manages the WidgetKit extension, which continues to display the saved snapshot. The main app must run periodically to retrieve fresh usage data.
+This is expected. macOS manages the WidgetKit extension, which continues to display saved App Group data. The main app must run periodically to retrieve fresh usage data and record remaining-capacity history.
 
 For the exact local data and Codex CLI communication boundaries, see [PRIVACY.md](./PRIVACY.md).

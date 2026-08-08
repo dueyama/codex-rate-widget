@@ -22,6 +22,10 @@
 		A1000000000000000000000D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* Assets.xcassets */; };
 		A1000000000000000000000E /* BuildVersionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* BuildVersionInfo.swift */; };
 		A1000000000000000000000F /* BuildVersionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* BuildVersionInfo.swift */; };
+		A10000000000000000000011 /* RemainingUsageHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* RemainingUsageHistory.swift */; };
+		A10000000000000000000012 /* RemainingUsageHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* RemainingUsageHistory.swift */; };
+		A10000000000000000000013 /* WidgetDisplayPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* WidgetDisplayPreferences.swift */; };
+		A10000000000000000000014 /* WidgetDisplayPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* WidgetDisplayPreferences.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +76,8 @@
 		A2000000000000000000000E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A2000000000000000000000F /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
 		A20000000000000000000010 /* BuildVersionInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildVersionInfo.swift; sourceTree = "<group>"; };
+		A20000000000000000000011 /* RemainingUsageHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemainingUsageHistory.swift; sourceTree = "<group>"; };
+		A20000000000000000000012 /* WidgetDisplayPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDisplayPreferences.swift; sourceTree = "<group>"; };
 		A30000000000000000000001 /* CodexRateWidget.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CodexRateWidget.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30000000000000000000002 /* CodexRateWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CodexRateWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30000000000000000000003 /* CodexRateWidgetTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CodexRateWidgetTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -140,7 +146,9 @@
 			isa = PBXGroup;
 			children = (
 				A20000000000000000000010 /* BuildVersionInfo.swift */,
+				A20000000000000000000011 /* RemainingUsageHistory.swift */,
 				A20000000000000000000005 /* UsageSnapshot.swift */,
+				A20000000000000000000012 /* WidgetDisplayPreferences.swift */,
 				A2000000000000000000000D /* Localizable.xcstrings */,
 			);
 			path = Shared;
@@ -312,7 +320,9 @@
 				A10000000000000000000003 /* CodexRateLimitClient.swift in Sources */,
 				A10000000000000000000004 /* ProjectUsageAnalyzer.swift in Sources */,
 				A1000000000000000000000E /* BuildVersionInfo.swift in Sources */,
+				A10000000000000000000011 /* RemainingUsageHistory.swift in Sources */,
 				A10000000000000000000005 /* UsageSnapshot.swift in Sources */,
+				A10000000000000000000013 /* WidgetDisplayPreferences.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -323,7 +333,9 @@
 				A10000000000000000000006 /* CodexRateWidgetBundle.swift in Sources */,
 				A10000000000000000000007 /* CodexUsageWidget.swift in Sources */,
 				A1000000000000000000000F /* BuildVersionInfo.swift in Sources */,
+				A10000000000000000000012 /* RemainingUsageHistory.swift in Sources */,
 				A10000000000000000000008 /* UsageSnapshot.swift in Sources */,
+				A10000000000000000000014 /* WidgetDisplayPreferences.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

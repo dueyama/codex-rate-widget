@@ -183,6 +183,7 @@ enum WidgetConstants {
         return value
     }
     static let snapshotFileName = "usage-snapshot-v1.json"
+    static let remainingHistoryFileName = "remaining-usage-history-v1.json"
     static let snapshotKey = "usage-snapshot-v1"
     static let lastErrorKey = "last-error-v1"
     static let widgetKind = "CodexRateWidget"

@@ -1,3 +1,4 @@
+import AppIntents
 import Charts
 import SwiftUI
 import WidgetKit
@@ -5,12 +6,15 @@ import WidgetKit
 struct UsageEntry: TimelineEntry {
     let date: Date
     let snapshot: UsageSnapshot
+    let remainingHistory: RemainingUsageHistory
+    let chartMode: WidgetChartMode
+    let historyRange: RemainingHistoryRange
 }
 
 struct UsageProvider: TimelineProvider {
     func placeholder(in context: Context) -> UsageEntry {
         let now = Date.now
-        return UsageEntry(date: now, snapshot: .make(
+        let snapshot = UsageSnapshot.make(
             windows: [
                 RateLimitWindow(usedPercent: 34, windowDurationMins: 300, resetsAt: Int(now.addingTimeInterval(6_000).timeIntervalSince1970)),
                 RateLimitWindow(usedPercent: 28, windowDurationMins: 10_080, resetsAt: Int(now.addingTimeInterval(400_000).timeIntervalSince1970))
@@ -24,17 +28,34 @@ struct UsageProvider: TimelineProvider {
                 .init(path: "/Projects/Documentation", tokens: 160_000)
             ],
             updatedAt: now
-        ))
+        )
+        return UsageEntry(
+            date: now,
+            snapshot: snapshot,
+            remainingHistory: placeholderRemainingHistory(through: now),
+            chartMode: .officialTokens,
+            historyRange: .oneDay
+        )
     }
 
     func getSnapshot(in context: Context, completion: @escaping (UsageEntry) -> Void) {
-        completion(UsageEntry(date: .now, snapshot: context.isPreview ? placeholder(in: context).snapshot : SharedUsageStore.load()))
+        completion(context.isPreview ? placeholder(in: context) : currentEntry())
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<UsageEntry>) -> Void) {
-        let entry = UsageEntry(date: .now, snapshot: SharedUsageStore.load())
+        let entry = currentEntry()
         let next = Calendar.current.date(byAdding: .minute, value: 15, to: .now) ?? .now.addingTimeInterval(900)
         completion(Timeline(entries: [entry], policy: .after(next)))
+    }
+
+    private func currentEntry(at date: Date = .now) -> UsageEntry {
+        UsageEntry(
+            date: date,
+            snapshot: SharedUsageStore.load(),
+            remainingHistory: SharedRemainingUsageHistoryStore.load(),
+            chartMode: WidgetDisplayPreferences.chartMode(),
+            historyRange: WidgetDisplayPreferences.historyRange()
+        )
     }
 }
 
@@ -46,7 +67,7 @@ struct CodexUsageWidget: Widget {
                 .widgetURL(URL(string: "codexratewidget://refresh"))
         }
         .configurationDisplayName("Codex Remaining Capacity")
-        .description("Shows active Codex usage limits, token totals, and estimated usage by project.")
+        .description("Shows active Codex usage limits, token totals, remaining-capacity history, and estimated usage by project.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
@@ -58,7 +79,7 @@ private struct CodexWidgetView: View {
     var body: some View {
         switch family {
         case .systemSmall: SmallUsageView(snapshot: entry.snapshot)
-        case .systemLarge: LargeUsageView(snapshot: entry.snapshot)
+        case .systemLarge: LargeUsageView(entry: entry)
         default: MediumUsageView(snapshot: entry.snapshot)
         }
     }
@@ -125,7 +146,9 @@ private struct MediumUsageView: View {
 }
 
 private struct LargeUsageView: View {
-    let snapshot: UsageSnapshot
+    let entry: UsageEntry
+
+    private var snapshot: UsageSnapshot { entry.snapshot }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -147,34 +170,7 @@ private struct LargeUsageView: View {
 
             Divider()
 
-            VStack(alignment: .leading, spacing: 5) {
-                HStack {
-                    Text("Official Tokens").font(.caption.weight(.semibold))
-                    Spacer()
-                    if let lifetimeTokens = snapshot.lifetimeTokens {
-                        Text(String(format: String(localized: "Lifetime %@"), tokenCountLabel(lifetimeTokens)))
-                            .font(.caption2.weight(.semibold))
-                    }
-                }
-                HStack {
-                    Text("Daily · Last 7 Days").font(.caption2).foregroundStyle(.secondary)
-                    Spacer()
-                    if !recentDailyUsage.isEmpty {
-                        Text(String(
-                            format: String(localized: "Last 7 days %@"),
-                            tokenCountLabel(recentDailyUsage.reduce(0) { $0 + $1.tokens })
-                        ))
-                            .font(.caption2).foregroundStyle(.secondary)
-                    }
-                }
-                if recentDailyUsage.isEmpty {
-                    Text("Daily account data is currently unavailable")
-                        .font(.caption2).foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, minHeight: 64)
-                } else {
-                    DailyTokenChart(usage: recentDailyUsage)
-                }
-            }
+            UsageHistorySection(entry: entry, recentDailyUsage: recentDailyUsage)
 
             Divider()
 
@@ -205,6 +201,208 @@ private struct LargeUsageView: View {
 
     private var recentOfficialTokenTotal: Int64 {
         recentDailyUsage.reduce(0) { $0 + $1.tokens }
+    }
+}
+
+private struct UsageHistorySection: View {
+    let entry: UsageEntry
+    let recentDailyUsage: [DailyTokenUsage]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 4) {
+                WidgetOptionButton(
+                    title: "Daily Usage",
+                    selected: entry.chartMode == .officialTokens,
+                    intent: SetWidgetChartModeIntent(mode: .officialTokens)
+                )
+                WidgetOptionButton(
+                    title: "Remaining History",
+                    selected: entry.chartMode == .remainingHistory,
+                    intent: SetWidgetChartModeIntent(mode: .remainingHistory)
+                )
+                Spacer(minLength: 6)
+                if entry.chartMode == .officialTokens {
+                    if let lifetimeTokens = entry.snapshot.lifetimeTokens {
+                        Text(String(format: String(localized: "Lifetime %@"), tokenCountLabel(lifetimeTokens)))
+                            .font(.caption2.weight(.semibold))
+                    }
+                } else {
+                    WidgetOptionButton(
+                        title: "24h",
+                        selected: entry.historyRange == .oneDay,
+                        intent: SetRemainingHistoryRangeIntent(range: .oneDay)
+                    )
+                    WidgetOptionButton(
+                        title: "7d",
+                        selected: entry.historyRange == .sevenDays,
+                        intent: SetRemainingHistoryRangeIntent(range: .sevenDays)
+                    )
+                }
+            }
+
+            if entry.chartMode == .officialTokens {
+                officialTokenContent
+            } else {
+                remainingHistoryContent
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var officialTokenContent: some View {
+        HStack {
+            Text("Daily · Last 7 Days").font(.caption2).foregroundStyle(.secondary)
+            Spacer()
+            if !recentDailyUsage.isEmpty {
+                Text(String(
+                    format: String(localized: "Last 7 days %@"),
+                    tokenCountLabel(recentDailyUsage.reduce(0) { $0 + $1.tokens })
+                ))
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+        if recentDailyUsage.isEmpty {
+            Text("Daily account data is currently unavailable")
+                .font(.caption2).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 68)
+        } else {
+            DailyTokenChart(usage: recentDailyUsage)
+        }
+    }
+
+    @ViewBuilder
+    private var remainingHistoryContent: some View {
+        let points = entry.remainingHistory.chartPoints(
+            in: entry.historyRange,
+            through: entry.date
+        )
+
+        HStack(spacing: 8) {
+            Text("Recorded on This Mac · Every 15 Minutes")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            Spacer(minLength: 4)
+            RemainingHistoryLegend(points: points)
+        }
+        if points.isEmpty {
+            Text("History begins after the app's next refresh")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 68)
+        } else {
+            RemainingCapacityChart(
+                points: points,
+                range: entry.historyRange,
+                through: entry.date
+            )
+        }
+    }
+}
+
+private struct WidgetOptionButton<Intent: AppIntent>: View {
+    let title: LocalizedStringKey
+    let selected: Bool
+    let intent: Intent
+
+    var body: some View {
+        Button(intent: intent) {
+            Text(title)
+                .font(.caption2.weight(selected ? .semibold : .regular))
+                .foregroundStyle(selected ? Color.primary : Color.secondary)
+                .lineLimit(1)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(selected ? Color.blue.opacity(0.16) : Color.clear, in: Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct RemainingHistoryLegend: View {
+    let points: [RemainingUsageChartPoint]
+
+    var body: some View {
+        HStack(spacing: 7) {
+            ForEach(availableKinds, id: \.self) { kind in
+                HStack(spacing: 3) {
+                    Circle()
+                        .fill(remainingHistoryColor(kind))
+                        .frame(width: 5, height: 5)
+                    Text(remainingHistoryTitle(kind))
+                        .font(.system(size: 8, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private var availableKinds: [RemainingLimitKind] {
+        RemainingLimitKind.allCases.filter { kind in
+            points.contains { $0.kind == kind }
+        }
+    }
+}
+
+private struct RemainingCapacityChart: View {
+    let points: [RemainingUsageChartPoint]
+    let range: RemainingHistoryRange
+    let through: Date
+
+    var body: some View {
+        VStack(spacing: 1) {
+            Chart(points) { point in
+                LineMark(
+                    x: .value(String(localized: "Time"), point.capturedAt),
+                    y: .value(String(localized: "Remaining %"), point.remainingPercent),
+                    series: .value(String(localized: "Series"), point.seriesID)
+                )
+                .foregroundStyle(remainingHistoryColor(point.kind))
+                .lineStyle(StrokeStyle(lineWidth: 1.6, lineCap: .round, lineJoin: .round))
+
+                if points.count <= 12 {
+                    PointMark(
+                        x: .value(String(localized: "Time"), point.capturedAt),
+                        y: .value(String(localized: "Remaining %"), point.remainingPercent)
+                    )
+                    .foregroundStyle(remainingHistoryColor(point.kind))
+                    .symbolSize(10)
+                }
+            }
+            .chartXScale(domain: startDate...through)
+            .chartYScale(domain: 0...100)
+            .chartXAxis(.hidden)
+            .chartYAxis {
+                AxisMarks(position: .leading, values: [0, 50, 100]) { value in
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                        .foregroundStyle(.secondary.opacity(0.18))
+                    AxisValueLabel {
+                        if let percent = value.as(Int.self) {
+                            Text("\(percent)%")
+                                .font(.system(size: 7, weight: .medium, design: .rounded))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .frame(height: 51)
+
+            HStack {
+                Text(verbatim: remainingHistoryAxisLabel(startDate, range: range))
+                Spacer()
+                Text(verbatim: remainingHistoryAxisLabel(through, range: range))
+            }
+            .font(.system(size: 8, weight: .medium, design: .rounded))
+            .monospacedDigit()
+            .foregroundStyle(.secondary)
+        }
+        .frame(height: 68)
+    }
+
+    private var startDate: Date {
+        through.addingTimeInterval(-range.duration)
     }
 }
 
@@ -389,6 +587,29 @@ private func tokenCountLabel(_ tokens: Int64) -> String {
     return tokens.formatted(.number.notation(.compactName))
 }
 
+private func remainingHistoryColor(_ kind: RemainingLimitKind) -> Color {
+    switch kind {
+    case .fiveHour: .blue
+    case .weekly: .green
+    }
+}
+
+private func remainingHistoryTitle(_ kind: RemainingLimitKind) -> String {
+    switch kind {
+    case .fiveHour: String(localized: "5 hours")
+    case .weekly: String(localized: "Weekly")
+    }
+}
+
+private func remainingHistoryAxisLabel(_ date: Date, range: RemainingHistoryRange) -> String {
+    switch range {
+    case .oneDay:
+        date.formatted(.dateTime.month(.defaultDigits).day(.defaultDigits).hour().minute())
+    case .sevenDays:
+        date.formatted(.dateTime.month(.defaultDigits).day(.defaultDigits))
+    }
+}
+
 private func placeholderDailyUsage(through now: Date) -> [DailyTokenUsage] {
     let tokens: [Int64] = [230_000, 410_000, 180_000, 560_000, 320_000, 690_000, 270_000]
     let formatter = DateFormatter()
@@ -402,4 +623,18 @@ private func placeholderDailyUsage(through now: Date) -> [DailyTokenUsage] {
         }
         return DailyTokenUsage(startDate: formatter.string(from: date), tokens: tokenCount)
     }
+}
+
+private func placeholderRemainingHistory(through now: Date) -> RemainingUsageHistory {
+    let samples = (0...48).map { index in
+        let capturedAt = now.addingTimeInterval(TimeInterval(index - 48) * 3_600)
+        let fiveHourRemaining = 92 - ((index * 9) % 78)
+        let weeklyRemaining = max(28, 84 - index)
+        return RemainingUsageSample(
+            capturedAt: capturedAt,
+            fiveHourRemainingPercent: fiveHourRemaining,
+            weeklyRemainingPercent: weeklyRemaining
+        )
+    }
+    return RemainingUsageHistory(samples: samples)
 }

@@ -6,6 +6,28 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-08
+
+### Added
+
+- Interactive large-widget switching between official daily token usage and locally recorded remaining-capacity history.
+- Twenty-four-hour and seven-day time scales for five-hour and weekly remaining-capacity observations.
+- Bounded, atomic seven-day history storage with 15-minute deduplication and explicit gaps at missing windows and recording pauses.
+
+## [1.0.2] - 2026-08-06
+
+### Added
+
+- Official weekly reset date and remaining time in the menu app and widgets.
+
+## [1.0.1] - 2026-07-17
+
+### Changed
+
+- Added dates and token labels to the official seven-day daily-usage chart.
+
+## [1.0.0] - 2026-07-17
+
 ### Added
 
 - macOS menu-bar app with automatic 15-minute refresh and Launch at Login control.
