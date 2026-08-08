@@ -25,7 +25,7 @@ The app overwrites one latest usage snapshot in the configured App Group contain
 
 The app also stores a separate bounded remaining-capacity history in the App Group container. After each successful refresh, it records the observation time and the available five-hour and weekly remaining percentages. Samples are grouped into 15-minute buckets and observations older than seven days are deleted. The history contains no project paths and is atomically rewritten rather than appended without limit.
 
-The selected large-widget chart and remaining-history time scale are stored in App Group preferences. The latest error message is stored there as well.
+The selected large-widget chart, remaining-history time scale, and display language are stored in App Group preferences. The latest error message is stored there as well.
 
 Launch at Login is registered through macOS `SMAppService`; macOS owns that registration.
 

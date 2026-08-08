@@ -26,6 +26,7 @@ Codex Rate Widget is a source-distributed macOS menu-bar app and WidgetKit exten
 - `CodexRateWidget/App/ProjectUsageAnalyzer.swift`: read-only local SQLite aggregation.
 - `CodexRateWidget/App/UsageController.swift`: 15-minute refresh loop and WidgetKit reload.
 - `CodexRateWidget/Shared/BuildVersionInfo.swift`: bundle version parsing and the shared compact label.
+- `CodexRateWidget/Shared/DisplayLanguage.swift`: shared system/English/Japanese preference and explicit-locale string lookup.
 - `CodexRateWidget/Shared/RemainingUsageHistory.swift`: bounded 15-minute remaining-capacity observations and chart segmentation.
 - `CodexRateWidget/Shared/UsageSnapshot.swift`: shared models and App Group persistence.
 - `CodexRateWidget/Shared/WidgetDisplayPreferences.swift`: App Group chart preferences and interactive widget App Intents.

@@ -11,27 +11,43 @@ actor CodexRateLimitClient {
         case noCodexBucket
 
         var errorDescription: String? {
+            let locale = DisplayLanguagePreferences.load().locale
             switch self {
             case .codexNotFound:
-                return String(localized: "Codex CLI was not found. Install `codex`, then restart the app.")
+                return AppLocalization.string(
+                    "Codex CLI was not found. Install `codex`, then restart the app.",
+                    locale: locale
+                )
             case let .launchFailed(message):
-                return String(format: String(localized: "Could not launch Codex CLI: %@"), message)
+                return AppLocalization.format(
+                    "Could not launch Codex CLI: %@",
+                    locale: locale,
+                    message
+                )
             case .timeout:
-                return String(localized: "Timed out while fetching Codex usage.")
+                return AppLocalization.string("Timed out while fetching Codex usage.", locale: locale)
             case let .malformedResponse(details):
                 let suffix = details.isEmpty ? "" : " \(details)"
-                return String(format: String(localized: "Unexpected response from Codex.%@"), suffix)
+                return AppLocalization.format(
+                    "Unexpected response from Codex.%@",
+                    locale: locale,
+                    suffix
+                )
             case let .processExited(code, details):
                 let suffix = details.isEmpty ? "" : " \(details)"
-                return String(
-                    format: String(localized: "Codex CLI exited before responding. (exit code %d)%@"),
+                return AppLocalization.format(
+                    "Codex CLI exited before responding. (exit code %d)%@",
+                    locale: locale,
                     code,
                     suffix
                 )
             case let .server(message):
-                return String(format: String(localized: "Codex: %@"), message)
+                return AppLocalization.format("Codex: %@", locale: locale, message)
             case .noCodexBucket:
-                return String(localized: "Codex did not return a usage-limit window.")
+                return AppLocalization.string(
+                    "Codex did not return a usage-limit window.",
+                    locale: locale
+                )
             }
         }
     }
@@ -300,7 +316,10 @@ actor CodexRateLimitClient {
                         return
                     }
                     guard let result = response.result else {
-                        finish(.failure(ClientError.malformedResponse(String(localized: "rateLimits/read result was empty."))))
+                        finish(.failure(ClientError.malformedResponse(AppLocalization.string(
+                            "rateLimits/read result was empty.",
+                            locale: DisplayLanguagePreferences.load().locale
+                        ))))
                         return
                     }
                     withLock { storage in

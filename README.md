@@ -53,7 +53,7 @@ The helper does not edit the Xcode project or tracked files. It writes only `Con
 
 The Team ID is optional in the helper. If supplied, it is written only to the ignored local configuration. `$(TeamIdentifierPrefix)` is resolved from the signing team so the non-provisioned macOS App Group has the required `<Developer team identifier>.<group name>` form. Xcode and `xcodebuild` apply the local configuration automatically, with no extra command-line option.
 
-The menu app and every widget size show the same compact version label, such as `v1.1.0`. The visible version and internal monotonically increasing build number both come from `Config/Shared.xcconfig`, so the app and embedded extension cannot drift when either value is updated.
+The menu app and every widget size show the same compact version label, such as `v1.1.1`. The visible version and internal monotonically increasing build number both come from `Config/Shared.xcconfig`, so the app and embedded extension cannot drift when either value is updated.
 
 To install it manually:
 
@@ -70,7 +70,9 @@ The repository intentionally does not contain an Apple Development Team ID, cert
 
 ## Localization
 
-English is the development and fallback language. Japanese translations are used when the system language is Japanese; all other language settings use English.
+English is the development and fallback language. Japanese translations are used when the system language is Japanese; all other system languages fall back to English.
+
+The menu-bar app's Language control can override the system setting with English or Japanese. The selection is stored in the App Group and immediately reloads the widget, so the menu app and every widget size use the same language. System Default preserves the standard macOS behavior.
 
 ## Resource Use
 

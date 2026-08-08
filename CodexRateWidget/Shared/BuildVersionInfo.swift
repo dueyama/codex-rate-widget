@@ -23,10 +23,11 @@ struct BuildVersionInfo: Equatable, Sendable {
     }
 
     var accessibilityLabel: String {
-        String(
-            format: String(localized: "Version %@"),
-            shortVersion
-        )
+        accessibilityLabel(locale: .current)
+    }
+
+    func accessibilityLabel(locale: Locale) -> String {
+        AppLocalization.format("Version %@", locale: locale, shortVersion)
     }
 
     private static func clean(_ rawValue: Any?) -> String? {

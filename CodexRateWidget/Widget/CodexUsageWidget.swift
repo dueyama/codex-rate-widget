@@ -9,6 +9,7 @@ struct UsageEntry: TimelineEntry {
     let remainingHistory: RemainingUsageHistory
     let chartMode: WidgetChartMode
     let historyRange: RemainingHistoryRange
+    let displayLanguage: DisplayLanguage
 }
 
 struct UsageProvider: TimelineProvider {
@@ -34,7 +35,8 @@ struct UsageProvider: TimelineProvider {
             snapshot: snapshot,
             remainingHistory: placeholderRemainingHistory(through: now),
             chartMode: .officialTokens,
-            historyRange: .oneDay
+            historyRange: .oneDay,
+            displayLanguage: .system
         )
     }
 
@@ -54,20 +56,30 @@ struct UsageProvider: TimelineProvider {
             snapshot: SharedUsageStore.load(),
             remainingHistory: SharedRemainingUsageHistoryStore.load(),
             chartMode: WidgetDisplayPreferences.chartMode(),
-            historyRange: WidgetDisplayPreferences.historyRange()
+            historyRange: WidgetDisplayPreferences.historyRange(),
+            displayLanguage: DisplayLanguagePreferences.load()
         )
     }
 }
 
 struct CodexUsageWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: WidgetConstants.widgetKind, provider: UsageProvider()) { entry in
+        let configurationLocale = DisplayLanguagePreferences.load().locale
+
+        return StaticConfiguration(kind: WidgetConstants.widgetKind, provider: UsageProvider()) { entry in
             CodexWidgetView(entry: entry)
+                .environment(\.locale, entry.displayLanguage.locale)
                 .containerBackground(for: .widget) { Color(nsColor: .windowBackgroundColor) }
                 .widgetURL(URL(string: "codexratewidget://refresh"))
         }
-        .configurationDisplayName("Codex Remaining Capacity")
-        .description("Shows active Codex usage limits, token totals, remaining-capacity history, and estimated usage by project.")
+        .configurationDisplayName(Text(verbatim: AppLocalization.string(
+            "Codex Remaining Capacity",
+            locale: configurationLocale
+        )))
+        .description(Text(verbatim: AppLocalization.string(
+            "Shows active Codex usage limits, token totals, remaining-capacity history, and estimated usage by project.",
+            locale: configurationLocale
+        )))
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
@@ -86,25 +98,34 @@ private struct CodexWidgetView: View {
 }
 
 private struct SmallUsageView: View {
+    @Environment(\.locale) private var locale
     let snapshot: UsageSnapshot
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Codex").font(.headline)
+                AppLocalizedText("Codex").font(.headline)
                 Spacer()
                 Image(systemName: "gauge.with.dots.needle.50percent")
                     .foregroundStyle(.secondary)
             }
             if let fiveHour = snapshot.fiveHour {
-                LimitRing(title: String(localized: "5 hours"), window: fiveHour, size: 88)
+                LimitRing(
+                    title: AppLocalization.string("5 hours", locale: locale),
+                    window: fiveHour,
+                    size: 88
+                )
                     .frame(maxWidth: .infinity)
             } else if let weekly = snapshot.weekly {
-                LimitRing(title: String(localized: "Weekly"), window: weekly, size: 88)
+                LimitRing(
+                    title: AppLocalization.string("Weekly", locale: locale),
+                    window: weekly,
+                    size: 88
+                )
                     .frame(maxWidth: .infinity)
             } else {
                 Spacer()
-                Text("No active limit")
+                AppLocalizedText("No active limit")
                     .font(.title3.bold())
                     .frame(maxWidth: .infinity)
                 Spacer()
@@ -112,7 +133,7 @@ private struct SmallUsageView: View {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 WidgetVersionLabel()
                 Spacer(minLength: 4)
-                Text(updateLabel(snapshot.updatedAt))
+                Text(updateLabel(snapshot.updatedAt, locale: locale))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -123,14 +144,15 @@ private struct SmallUsageView: View {
 }
 
 private struct MediumUsageView: View {
+    @Environment(\.locale) private var locale
     let snapshot: UsageSnapshot
 
     var body: some View {
         HStack(spacing: 18) {
             VStack(alignment: .leading, spacing: 5) {
-                Text("Codex Remaining Capacity").font(.headline)
+                AppLocalizedText("Codex Remaining Capacity").font(.headline)
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(updateLabel(snapshot.updatedAt))
+                    Text(updateLabel(snapshot.updatedAt, locale: locale))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     WidgetVersionLabel()
@@ -139,13 +161,22 @@ private struct MediumUsageView: View {
                 WeeklyResetDetails(window: snapshot.weekly)
             }
             Spacer()
-            LimitRing(title: String(localized: "5 hours"), window: snapshot.fiveHour, size: 92)
-            LimitRing(title: String(localized: "Weekly"), window: snapshot.weekly, size: 92)
+            LimitRing(
+                title: AppLocalization.string("5 hours", locale: locale),
+                window: snapshot.fiveHour,
+                size: 92
+            )
+            LimitRing(
+                title: AppLocalization.string("Weekly", locale: locale),
+                window: snapshot.weekly,
+                size: 92
+            )
         }
     }
 }
 
 private struct LargeUsageView: View {
+    @Environment(\.locale) private var locale
     let entry: UsageEntry
 
     private var snapshot: UsageSnapshot { entry.snapshot }
@@ -154,9 +185,9 @@ private struct LargeUsageView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Codex Usage").font(.headline)
+                    AppLocalizedText("Codex Usage").font(.headline)
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(updateLabel(snapshot.updatedAt))
+                        Text(updateLabel(snapshot.updatedAt, locale: locale))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                         WidgetVersionLabel()
@@ -164,8 +195,16 @@ private struct LargeUsageView: View {
                     WeeklyResetDetails(window: snapshot.weekly)
                 }
                 Spacer()
-                LimitRing(title: String(localized: "5 hours"), window: snapshot.fiveHour, size: 76)
-                LimitRing(title: String(localized: "Weekly"), window: snapshot.weekly, size: 76)
+                LimitRing(
+                    title: AppLocalization.string("5 hours", locale: locale),
+                    window: snapshot.fiveHour,
+                    size: 76
+                )
+                LimitRing(
+                    title: AppLocalization.string("Weekly", locale: locale),
+                    window: snapshot.weekly,
+                    size: 76
+                )
             }
 
             Divider()
@@ -176,15 +215,15 @@ private struct LargeUsageView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("By Project · Last 7 Days").font(.caption.weight(.semibold))
+                    AppLocalizedText("By Project · Last 7 Days").font(.caption.weight(.semibold))
                     Spacer()
-                    Text("Local Estimate · Unofficial").font(.caption2).foregroundStyle(.orange)
+                    AppLocalizedText("Local Estimate · Unofficial").font(.caption2).foregroundStyle(.orange)
                 }
                 if recentOfficialTokenTotal <= 0 {
-                    Text("No official 7-day total is available to estimate")
+                    AppLocalizedText("No official 7-day total is available to estimate")
                         .font(.caption2).foregroundStyle(.secondary)
                 } else if snapshot.projectUsage.isEmpty {
-                    Text("No local sessions are available to estimate")
+                    AppLocalizedText("No local sessions are available to estimate")
                         .font(.caption2).foregroundStyle(.secondary)
                 } else {
                     ForEach(snapshot.projectUsage.prefix(3)) { project in
@@ -205,6 +244,7 @@ private struct LargeUsageView: View {
 }
 
 private struct UsageHistorySection: View {
+    @Environment(\.locale) private var locale
     let entry: UsageEntry
     let recentDailyUsage: [DailyTokenUsage]
 
@@ -224,7 +264,11 @@ private struct UsageHistorySection: View {
                 Spacer(minLength: 6)
                 if entry.chartMode == .officialTokens {
                     if let lifetimeTokens = entry.snapshot.lifetimeTokens {
-                        Text(String(format: String(localized: "Lifetime %@"), tokenCountLabel(lifetimeTokens)))
+                        Text(AppLocalization.format(
+                            "Lifetime %@",
+                            locale: locale,
+                            tokenCountLabel(lifetimeTokens, locale: locale)
+                        ))
                             .font(.caption2.weight(.semibold))
                     }
                 } else {
@@ -252,18 +296,22 @@ private struct UsageHistorySection: View {
     @ViewBuilder
     private var officialTokenContent: some View {
         HStack {
-            Text("Daily · Last 7 Days").font(.caption2).foregroundStyle(.secondary)
+            AppLocalizedText("Daily · Last 7 Days").font(.caption2).foregroundStyle(.secondary)
             Spacer()
             if !recentDailyUsage.isEmpty {
-                Text(String(
-                    format: String(localized: "Last 7 days %@"),
-                    tokenCountLabel(recentDailyUsage.reduce(0) { $0 + $1.tokens })
+                Text(AppLocalization.format(
+                    "Last 7 days %@",
+                    locale: locale,
+                    tokenCountLabel(
+                        recentDailyUsage.reduce(0) { $0 + $1.tokens },
+                        locale: locale
+                    )
                 ))
                     .font(.caption2).foregroundStyle(.secondary)
             }
         }
         if recentDailyUsage.isEmpty {
-            Text("Daily account data is currently unavailable")
+            AppLocalizedText("Daily account data is currently unavailable")
                 .font(.caption2).foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, minHeight: 68)
         } else {
@@ -279,7 +327,7 @@ private struct UsageHistorySection: View {
         )
 
         HStack(spacing: 8) {
-            Text("Recorded on This Mac · Every 15 Minutes")
+            AppLocalizedText("Recorded on This Mac · Every 15 Minutes")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
@@ -288,7 +336,7 @@ private struct UsageHistorySection: View {
             RemainingHistoryLegend(points: points)
         }
         if points.isEmpty {
-            Text("History begins after the app's next refresh")
+            AppLocalizedText("History begins after the app's next refresh")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, minHeight: 68)
@@ -303,13 +351,13 @@ private struct UsageHistorySection: View {
 }
 
 private struct WidgetOptionButton<Intent: AppIntent>: View {
-    let title: LocalizedStringKey
+    let title: String
     let selected: Bool
     let intent: Intent
 
     var body: some View {
         Button(intent: intent) {
-            Text(title)
+            AppLocalizedText(title)
                 .font(.caption2.weight(selected ? .semibold : .regular))
                 .foregroundStyle(selected ? Color.primary : Color.secondary)
                 .lineLimit(1)
@@ -322,6 +370,7 @@ private struct WidgetOptionButton<Intent: AppIntent>: View {
 }
 
 private struct RemainingHistoryLegend: View {
+    @Environment(\.locale) private var locale
     let points: [RemainingUsageChartPoint]
 
     var body: some View {
@@ -331,7 +380,7 @@ private struct RemainingHistoryLegend: View {
                     Circle()
                         .fill(remainingHistoryColor(kind))
                         .frame(width: 5, height: 5)
-                    Text(remainingHistoryTitle(kind))
+                    Text(remainingHistoryTitle(kind, locale: locale))
                         .font(.system(size: 8, weight: .medium, design: .rounded))
                         .foregroundStyle(.secondary)
                 }
@@ -347,6 +396,7 @@ private struct RemainingHistoryLegend: View {
 }
 
 private struct RemainingCapacityChart: View {
+    @Environment(\.locale) private var locale
     let points: [RemainingUsageChartPoint]
     let range: RemainingHistoryRange
     let through: Date
@@ -355,17 +405,17 @@ private struct RemainingCapacityChart: View {
         VStack(spacing: 1) {
             Chart(points) { point in
                 LineMark(
-                    x: .value(String(localized: "Time"), point.capturedAt),
-                    y: .value(String(localized: "Remaining %"), point.remainingPercent),
-                    series: .value(String(localized: "Series"), point.seriesID)
+                    x: .value(AppLocalization.string("Time", locale: locale), point.capturedAt),
+                    y: .value(AppLocalization.string("Remaining %", locale: locale), point.remainingPercent),
+                    series: .value(AppLocalization.string("Series", locale: locale), point.seriesID)
                 )
                 .foregroundStyle(remainingHistoryColor(point.kind))
                 .lineStyle(StrokeStyle(lineWidth: 1.6, lineCap: .round, lineJoin: .round))
 
                 if points.count <= 12 {
                     PointMark(
-                        x: .value(String(localized: "Time"), point.capturedAt),
-                        y: .value(String(localized: "Remaining %"), point.remainingPercent)
+                        x: .value(AppLocalization.string("Time", locale: locale), point.capturedAt),
+                        y: .value(AppLocalization.string("Remaining %", locale: locale), point.remainingPercent)
                     )
                     .foregroundStyle(remainingHistoryColor(point.kind))
                     .symbolSize(10)
@@ -390,9 +440,9 @@ private struct RemainingCapacityChart: View {
             .frame(height: 51)
 
             HStack {
-                Text(verbatim: remainingHistoryAxisLabel(startDate, range: range))
+                Text(verbatim: remainingHistoryAxisLabel(startDate, range: range, locale: locale))
                 Spacer()
-                Text(verbatim: remainingHistoryAxisLabel(through, range: range))
+                Text(verbatim: remainingHistoryAxisLabel(through, range: range, locale: locale))
             }
             .font(.system(size: 8, weight: .medium, design: .rounded))
             .monospacedDigit()
@@ -407,13 +457,14 @@ private struct RemainingCapacityChart: View {
 }
 
 private struct DailyTokenChart: View {
+    @Environment(\.locale) private var locale
     let usage: [DailyTokenUsage]
 
     var body: some View {
         VStack(spacing: 2) {
             HStack(spacing: 0) {
                 ForEach(usage) { item in
-                    Text(verbatim: tokenCountLabel(item.tokens))
+                    Text(verbatim: tokenCountLabel(item.tokens, locale: locale))
                         .font(.system(size: 8, weight: .semibold, design: .rounded))
                         .monospacedDigit()
                         .lineLimit(1)
@@ -425,8 +476,8 @@ private struct DailyTokenChart: View {
 
             Chart(usage) { item in
                 BarMark(
-                    x: .value(String(localized: "Day"), item.startDate),
-                    y: .value(String(localized: "Tokens"), item.tokens)
+                    x: .value(AppLocalization.string("Day", locale: locale), item.startDate),
+                    y: .value(AppLocalization.string("Tokens", locale: locale), item.tokens)
                 )
                 .foregroundStyle(.blue)
                 .cornerRadius(3)
@@ -437,7 +488,7 @@ private struct DailyTokenChart: View {
 
             HStack(spacing: 0) {
                 ForEach(usage) { item in
-                    Text(verbatim: dailyDateLabel(item.startDate))
+                    Text(verbatim: dailyDateLabel(item.startDate, locale: locale))
                         .font(.system(size: 8, weight: .medium, design: .rounded))
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
@@ -453,18 +504,22 @@ private struct DailyTokenChart: View {
 }
 
 private struct WeeklyResetDetails: View {
+    @Environment(\.locale) private var locale
     let window: RateLimitWindow?
 
     var body: some View {
         if let window {
             if let resetDate = window.resetDate {
-                if let remaining = ResetScheduleFormatting.remainingDuration(until: resetDate) {
+                if let remaining = ResetScheduleFormatting.remainingDuration(
+                    until: resetDate,
+                    locale: locale
+                ) {
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Weekly reset")
+                        AppLocalizedText("Weekly reset")
                             .font(.caption2.weight(.semibold))
-                        Text(verbatim: ResetScheduleFormatting.dateTime(resetDate))
+                        Text(verbatim: ResetScheduleFormatting.dateTime(resetDate, locale: locale))
                             .font(.caption2.monospacedDigit())
-                        Text(String(format: String(localized: "%@ remaining"), remaining))
+                        Text(AppLocalization.format("%@ remaining", locale: locale, remaining))
                             .font(.caption2.monospacedDigit())
                             .foregroundStyle(.secondary)
                     }
@@ -479,8 +534,8 @@ private struct WeeklyResetDetails: View {
         }
     }
 
-    private func resetStateText(_ text: LocalizedStringKey) -> some View {
-        Text(text)
+    private func resetStateText(_ text: String) -> some View {
+        AppLocalizedText(text)
             .font(.caption2)
             .foregroundStyle(.secondary)
             .lineLimit(2)
@@ -488,6 +543,7 @@ private struct WeeklyResetDetails: View {
 }
 
 private struct LimitRing: View {
+    @Environment(\.locale) private var locale
     let title: String
     let window: RateLimitWindow?
     let size: CGFloat
@@ -504,12 +560,16 @@ private struct LimitRing: View {
                     VStack(spacing: -2) {
                         Text("\(window.remainingPercent)%")
                             .font(.system(size: size * 0.22, weight: .bold, design: .rounded))
-                        Text("Remaining").font(.system(size: size * 0.105)).foregroundStyle(.secondary)
+                        Text(verbatim: AppLocalization.string("Remaining", locale: locale))
+                            .font(.system(size: size * 0.105))
+                            .foregroundStyle(.secondary)
                     }
                 } else {
                     VStack(spacing: 1) {
                         Image(systemName: "minus").font(.headline)
-                        Text("Unavailable").font(.system(size: size * 0.1)).foregroundStyle(.secondary)
+                        Text(verbatim: AppLocalization.string("Unavailable", locale: locale))
+                            .font(.system(size: size * 0.1))
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
@@ -526,6 +586,8 @@ private struct LimitRing: View {
 }
 
 private struct WidgetVersionLabel: View {
+    @Environment(\.locale) private var locale
+
     var body: some View {
         if let version = BuildVersionInfo.current {
             Text(verbatim: version.compactLabel)
@@ -535,12 +597,13 @@ private struct WidgetVersionLabel: View {
                 .lineLimit(1)
                 .fixedSize(horizontal: true, vertical: false)
                 .layoutPriority(1)
-                .accessibilityLabel(Text(verbatim: version.accessibilityLabel))
+                .accessibilityLabel(Text(verbatim: version.accessibilityLabel(locale: locale)))
         }
     }
 }
 
 private struct ProjectRow: View {
+    @Environment(\.locale) private var locale
     let project: ProjectTokenUsage
     let maximum: Int64
 
@@ -557,34 +620,44 @@ private struct ProjectRow: View {
                     }
             }
             .frame(height: 7)
-            Text(String(format: String(localized: "Approx. %@"), tokenCountLabel(project.tokens)))
+            Text(verbatim: tokenCountLabel(project.tokens, locale: locale))
                 .font(.caption2.monospacedDigit())
-                .frame(width: 46, alignment: .trailing)
+                .frame(width: 50, alignment: .trailing)
+                .accessibilityLabel(Text(verbatim: AppLocalization.format(
+                    "Approx. %@",
+                    locale: locale,
+                    tokenCountLabel(project.tokens, locale: locale)
+                )))
         }
     }
 }
 
-private func updateLabel(_ date: Date) -> String {
-    guard date != .distantPast else { return String(localized: "Launch the app to fetch usage") }
-    return String(
-        format: String(localized: "Updated %@"),
-        date.formatted(date: .omitted, time: .shortened)
+private func updateLabel(_ date: Date, locale: Locale) -> String {
+    guard date != .distantPast else {
+        return AppLocalization.string("Launch the app to fetch usage", locale: locale)
+    }
+    return AppLocalization.format(
+        "Updated %@",
+        locale: locale,
+        date.formatted(.dateTime.hour().minute().locale(locale))
     )
 }
 
-private func dailyDateLabel(_ startDate: String) -> String {
+private func dailyDateLabel(_ startDate: String, locale: Locale) -> String {
     guard let date = DailyUsageHistory.date(from: startDate) else { return startDate }
-    return date.formatted(.dateTime.month(.defaultDigits).day(.defaultDigits))
+    return date.formatted(
+        .dateTime.month(.defaultDigits).day(.defaultDigits).locale(locale)
+    )
 }
 
-private func tokenCountLabel(_ tokens: Int64) -> String {
-    if Locale.current.language.languageCode?.identifier == "ja", tokens >= 100_000_000 {
-        return String(format: "%.1f億", Double(tokens) / 100_000_000)
+private func tokenCountLabel(_ tokens: Int64, locale: Locale) -> String {
+    if locale.language.languageCode?.identifier == "ja", tokens >= 100_000_000 {
+        return String(format: "%.1f億", locale: locale, Double(tokens) / 100_000_000)
     }
-    if Locale.current.language.languageCode?.identifier == "ja", tokens >= 10_000 {
-        return String(format: "%.1f万", Double(tokens) / 10_000)
+    if locale.language.languageCode?.identifier == "ja", tokens >= 10_000 {
+        return String(format: "%.1f万", locale: locale, Double(tokens) / 10_000)
     }
-    return tokens.formatted(.number.notation(.compactName))
+    return tokens.formatted(.number.notation(.compactName).locale(locale))
 }
 
 private func remainingHistoryColor(_ kind: RemainingLimitKind) -> Color {
@@ -594,19 +667,27 @@ private func remainingHistoryColor(_ kind: RemainingLimitKind) -> Color {
     }
 }
 
-private func remainingHistoryTitle(_ kind: RemainingLimitKind) -> String {
+private func remainingHistoryTitle(_ kind: RemainingLimitKind, locale: Locale) -> String {
     switch kind {
-    case .fiveHour: String(localized: "5 hours")
-    case .weekly: String(localized: "Weekly")
+    case .fiveHour: AppLocalization.string("5 hours", locale: locale)
+    case .weekly: AppLocalization.string("Weekly", locale: locale)
     }
 }
 
-private func remainingHistoryAxisLabel(_ date: Date, range: RemainingHistoryRange) -> String {
+private func remainingHistoryAxisLabel(
+    _ date: Date,
+    range: RemainingHistoryRange,
+    locale: Locale
+) -> String {
     switch range {
     case .oneDay:
-        date.formatted(.dateTime.month(.defaultDigits).day(.defaultDigits).hour().minute())
+        date.formatted(
+            .dateTime.month(.defaultDigits).day(.defaultDigits).hour().minute().locale(locale)
+        )
     case .sevenDays:
-        date.formatted(.dateTime.month(.defaultDigits).day(.defaultDigits))
+        date.formatted(
+            .dateTime.month(.defaultDigits).day(.defaultDigits).locale(locale)
+        )
     }
 }
 

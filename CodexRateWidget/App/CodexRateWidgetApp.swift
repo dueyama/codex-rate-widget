@@ -1,4 +1,5 @@
 import SwiftUI
+import WidgetKit
 
 enum AppRuntime {
     static func shouldStartMonitoring(
@@ -14,10 +15,12 @@ enum AppRuntime {
 @MainActor
 struct CodexRateWidgetApp: App {
     @StateObject private var controller: UsageController
+    @State private var displayLanguage: DisplayLanguage
 
     init() {
         let controller = UsageController()
         _controller = StateObject(wrappedValue: controller)
+        _displayLanguage = State(initialValue: DisplayLanguagePreferences.load())
 
         if AppRuntime.shouldStartMonitoring() {
             // A menu-bar-only app has no regular windows, so macOS may otherwise
@@ -30,23 +33,35 @@ struct CodexRateWidgetApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuContent(controller: controller)
+            MenuContent(controller: controller, displayLanguage: $displayLanguage)
                 .frame(width: 300)
+                .environment(\.locale, displayLanguage.locale)
+                .onChange(of: displayLanguage) { _, newLanguage in
+                    DisplayLanguagePreferences.save(newLanguage)
+                    WidgetCenter.shared.reloadTimelines(ofKind: WidgetConstants.widgetKind)
+                }
         } label: {
-            Label("Codex Rate", systemImage: "gauge.with.dots.needle.50percent")
+            Label {
+                AppLocalizedText("Codex Rate")
+            } icon: {
+                Image(systemName: "gauge.with.dots.needle.50percent")
+            }
+                .environment(\.locale, displayLanguage.locale)
         }
         .menuBarExtraStyle(.window)
     }
 }
 
 private struct MenuContent: View {
+    @Environment(\.locale) private var locale
     @ObservedObject var controller: UsageController
+    @Binding var displayLanguage: DisplayLanguage
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Codex Remaining Capacity")
+                    AppLocalizedText("Codex Remaining Capacity")
                         .font(.headline)
                     Text(updatedText)
                         .font(.caption)
@@ -64,12 +79,18 @@ private struct MenuContent: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(controller.isRefreshing)
-                .help("Refresh now")
+                .help(AppLocalization.string("Refresh now", locale: locale))
             }
 
             HStack(spacing: 12) {
-                LimitCard(title: String(localized: "5 hours"), window: controller.snapshot.fiveHour)
-                LimitCard(title: String(localized: "Weekly"), window: controller.snapshot.weekly)
+                LimitCard(
+                    title: AppLocalization.string("5 hours", locale: locale),
+                    window: controller.snapshot.fiveHour
+                )
+                LimitCard(
+                    title: AppLocalization.string("Weekly", locale: locale),
+                    window: controller.snapshot.weekly
+                )
             }
 
             WeeklyResetRow(window: controller.snapshot.weekly)
@@ -83,15 +104,39 @@ private struct MenuContent: View {
 
             Divider()
 
-            Toggle("Launch at Login", isOn: Binding(
+            Toggle(isOn: Binding(
                 get: { controller.launchAtLogin },
                 set: { controller.setLaunchAtLogin($0) }
-            ))
+            )) {
+                AppLocalizedText("Launch at Login")
+            }
             .toggleStyle(.switch)
             .controlSize(.small)
 
+            HStack(spacing: 8) {
+                Label {
+                    AppLocalizedText("Language")
+                } icon: {
+                    Image(systemName: "globe")
+                }
+                    .font(.callout)
+                Spacer()
+                Picker(selection: $displayLanguage) {
+                    ForEach(DisplayLanguage.allCases, id: \.self) { language in
+                        Text(verbatim: language.displayName(locale: locale))
+                            .tag(language)
+                    }
+                } label: {
+                    AppLocalizedText("Language")
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .fixedSize()
+                .accessibilityLabel(Text(verbatim: AppLocalization.string("Language", locale: locale)))
+            }
+
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text("Widget syncs every 15 minutes")
+                AppLocalizedText("Widget syncs every 15 minutes")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Spacer(minLength: 4)
@@ -101,9 +146,11 @@ private struct MenuContent: View {
                         .monospacedDigit()
                         .foregroundStyle(.tertiary)
                         .lineLimit(1)
-                        .accessibilityLabel(Text(verbatim: version.accessibilityLabel))
+                        .accessibilityLabel(Text(verbatim: version.accessibilityLabel(locale: locale)))
                 }
-                Button("Quit") { NSApplication.shared.terminate(nil) }
+                Button { NSApplication.shared.terminate(nil) } label: {
+                    AppLocalizedText("Quit")
+                }
                     .buttonStyle(.plain)
                     .font(.caption)
             }
@@ -112,39 +159,52 @@ private struct MenuContent: View {
     }
 
     private var updatedText: String {
-        guard controller.snapshot.updatedAt != .distantPast else { return String(localized: "Not fetched") }
-        return String(
-            format: String(localized: "Updated %@"),
-            controller.snapshot.updatedAt.formatted(date: .omitted, time: .shortened)
+        guard controller.snapshot.updatedAt != .distantPast else {
+            return AppLocalization.string("Not fetched", locale: locale)
+        }
+        return AppLocalization.format(
+            "Updated %@",
+            locale: locale,
+            controller.snapshot.updatedAt.formatted(
+                .dateTime.hour().minute().locale(locale)
+            )
         )
     }
 }
 
 private struct WeeklyResetRow: View {
+    @Environment(\.locale) private var locale
     let window: RateLimitWindow?
 
     var body: some View {
         if let window {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Label("Weekly reset", systemImage: "calendar.badge.clock")
+                Label {
+                    AppLocalizedText("Weekly reset")
+                } icon: {
+                    Image(systemName: "calendar.badge.clock")
+                }
                     .font(.caption.weight(.semibold))
                 Spacer(minLength: 8)
                 if let resetDate = window.resetDate {
-                    if let remaining = ResetScheduleFormatting.remainingDuration(until: resetDate) {
+                    if let remaining = ResetScheduleFormatting.remainingDuration(
+                        until: resetDate,
+                        locale: locale
+                    ) {
                         VStack(alignment: .trailing, spacing: 1) {
-                            Text(verbatim: ResetScheduleFormatting.dateTime(resetDate))
-                            Text(String(format: String(localized: "%@ remaining"), remaining))
+                            Text(verbatim: ResetScheduleFormatting.dateTime(resetDate, locale: locale))
+                            Text(AppLocalization.format("%@ remaining", locale: locale, remaining))
                                 .foregroundStyle(.secondary)
                         }
                         .font(.caption)
                         .monospacedDigit()
                     } else {
-                        Text("Refresh to update the weekly reset")
+                        AppLocalizedText("Refresh to update the weekly reset")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 } else {
-                    Text("Weekly reset time unknown")
+                    AppLocalizedText("Weekly reset time unknown")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -154,6 +214,7 @@ private struct WeeklyResetRow: View {
 }
 
 private struct LimitCard: View {
+    @Environment(\.locale) private var locale
     let title: String
     let window: RateLimitWindow?
 
@@ -194,11 +255,17 @@ private struct LimitCard: View {
     }
 
     private var resetText: String {
-        guard let window else { return String(localized: "Unavailable") }
-        guard let date = window.resetDate else { return String(localized: "Reset time unknown") }
-        return String(
-            format: String(localized: "Resets %@"),
-            date.formatted(.relative(presentation: .named, unitsStyle: .abbreviated))
+        guard let window else { return AppLocalization.string("Unavailable", locale: locale) }
+        guard let date = window.resetDate else {
+            return AppLocalization.string("Reset time unknown", locale: locale)
+        }
+        return AppLocalization.format(
+            "Resets %@",
+            locale: locale,
+            date.formatted(
+                .relative(presentation: .named, unitsStyle: .abbreviated)
+                    .locale(locale)
+            )
         )
     }
 }

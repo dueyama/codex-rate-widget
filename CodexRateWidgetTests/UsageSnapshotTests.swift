@@ -161,6 +161,34 @@ final class UsageSnapshotTests: XCTestCase {
         XCTAssertEqual(WidgetDisplayPreferences.historyRange(defaults: defaults), .sevenDays)
     }
 
+    func testDisplayLanguagePreferencesUseSystemDefaultAndPersistSelections() throws {
+        let suiteName = "CodexRateWidgetTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        XCTAssertEqual(DisplayLanguagePreferences.load(defaults: defaults), .system)
+
+        DisplayLanguagePreferences.save(.english, defaults: defaults)
+        XCTAssertEqual(DisplayLanguagePreferences.load(defaults: defaults), .english)
+
+        defaults.set("unsupported", forKey: "display-language-v1")
+        XCTAssertEqual(DisplayLanguagePreferences.load(defaults: defaults), .system)
+    }
+
+    func testExplicitDisplayLanguageOverridesSystemLocalization() {
+        let english = DisplayLanguage.english.locale
+        let japanese = DisplayLanguage.japanese.locale
+
+        XCTAssertEqual(AppLocalization.string("Weekly", locale: english), "Weekly")
+        XCTAssertEqual(AppLocalization.string("Weekly", locale: japanese), "週間")
+        XCTAssertEqual(DisplayLanguage.english.displayName(locale: japanese), "英語")
+        XCTAssertEqual(DisplayLanguage.japanese.displayName(locale: english), "Japanese")
+
+        let weekly = RateLimitWindow(usedPercent: 25, windowDurationMins: 10_080, resetsAt: nil)
+        XCTAssertEqual(weekly.durationLabel(locale: english), "Weekly")
+        XCTAssertEqual(weekly.durationLabel(locale: japanese), "週間")
+    }
+
     func testBuildVersionInfoFormatsResolvedBundleValues() throws {
         let version = try XCTUnwrap(BuildVersionInfo(infoDictionary: [
             "CFBundleShortVersionString": " 1.0.0 ",
@@ -223,6 +251,18 @@ final class UsageSnapshotTests: XCTestCase {
                 table: nil
             ),
             "残り推移"
+        )
+        XCTAssertEqual(
+            japaneseBundle.localizedString(forKey: "Language", value: "Language", table: nil),
+            "言語"
+        )
+        XCTAssertEqual(
+            japaneseBundle.localizedString(
+                forKey: "System Default",
+                value: "System Default",
+                table: nil
+            ),
+            "システム設定"
         )
     }
 

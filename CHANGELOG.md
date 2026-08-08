@@ -6,6 +6,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-08-08
+
+### Added
+
+- A menu-bar language selector with System Default, English, and Japanese options.
+- Shared App Group language preferences so the menu app and every widget size switch together.
+
+### Changed
+
+- Explicit-language rendering now applies consistently to localized text, dates, durations, and compact token units.
+
 ## [1.1.0] - 2026-08-08
 
 ### Added

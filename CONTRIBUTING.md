@@ -17,7 +17,7 @@ Unit tests do not access a live Codex account. The live integration test runs on
 - Label account totals and limits as official only when they came from Codex account methods. Project attribution is always a local estimate.
 - Do not scan project directories. Read only the minimal local thread metadata needed for aggregation.
 - Keep process and account work in the host app. The widget extension only reads saved App Group data and updates display preferences through App Intents.
-- Keep Swift source strings in English and add Japanese translations to `Localizable.xcstrings` for user-visible changes.
+- Keep Swift source strings in English and add Japanese translations to `Localizable.xcstrings` for user-visible changes. Respect the shared explicit display-language preference for strings, dates, durations, and number formatting.
 - Preserve the shared App Group derivation and process-lifecycle invariants described in `AGENTS.md`.
 
 ## Privacy and Public Hygiene

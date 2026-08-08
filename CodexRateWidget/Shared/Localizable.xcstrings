@@ -88,11 +88,20 @@
     "Day" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "日" } } }
     },
+    "English" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "英語" } } }
+    },
     "History begins after the app's next refresh" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "次回のアプリ更新後から履歴を記録します" } } }
     },
     "History range" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "履歴期間" } } }
+    },
+    "Japanese" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "日本語" } } }
+    },
+    "Language" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "言語" } } }
     },
     "Last 7 days %@" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "過去7日 %@" } } }
@@ -171,6 +180,9 @@
     },
     "Switches the remaining-capacity chart between the past 24 hours and the past 7 days." : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り容量グラフを過去24時間と過去7日で切り替えます。" } } }
+    },
+    "System Default" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "システム設定" } } }
     },
     "Timed out while fetching Codex usage." : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex の利用状況取得がタイムアウトしました。" } } }

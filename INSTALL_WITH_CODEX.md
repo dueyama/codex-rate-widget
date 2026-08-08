@@ -87,6 +87,7 @@ Do not select a Team by editing tracked project settings. If a Team ID changes, 
 - CPU usage returns to idle after data retrieval finishes
 - The App Group's `usage-snapshot-v1.json` contains an updated timestamp
 - The large widget clearly distinguishes official figures from unofficial local estimates
+- Changing Language in the menu app updates both the menu and widget without changing the macOS system language
 
 ## Troubleshooting
 

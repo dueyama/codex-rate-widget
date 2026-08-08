@@ -30,6 +30,7 @@ The size of a project directory does not affect this data path. Only stored thre
 | `ProjectUsageAnalyzer` | Aggregate recent, non-subagent thread metadata by `cwd` | During refresh |
 | `SharedUsageStore` | Atomically save/load one Codable snapshot | Short file access |
 | `SharedRemainingUsageHistoryStore` | Atomically save/load at most seven days of 15-minute remaining-capacity samples | Short file access |
+| `DisplayLanguagePreferences` | Share the system/English/Japanese display choice through App Group preferences | On app and widget rendering |
 | Widget extension | Render saved data for three widget sizes and handle chart-selection App Intents | Managed by macOS |
 
 ## Data provenance
@@ -102,11 +103,11 @@ The app executable is also the unit-test host. `AppRuntime` detects the XCTest e
 
 `SharedUsageStore` atomically overwrites one latest JSON snapshot in the App Group container and mirrors it in App Group preferences for compatibility with an older cached extension. The snapshot contains the original local `cwd` paths for the displayed project estimates; it is never sent by the app.
 
-`SharedRemainingUsageHistoryStore` uses a separate atomically rewritten JSON file. It replaces repeated observations in the same 15-minute bucket and removes samples older than seven days, keeping storage and rendering cost bounded. Chart selection, time range, and the latest error message use App Group preferences. None of these files are sent by the app.
+`SharedRemainingUsageHistoryStore` uses a separate atomically rewritten JSON file. It replaces repeated observations in the same 15-minute bucket and removes samples older than seven days, keeping storage and rendering cost bounded. Chart selection, time range, display language, and the latest error message use App Group preferences. None of these files are sent by the app.
 
 ## Localization
 
-English source strings are the fallback. `Localizable.xcstrings` supplies Japanese translations. Swift code should not introduce Japanese UI text directly, except the locale-specific Japanese compact-number units used by `tokenCountLabel`.
+English source strings are the fallback. `Localizable.xcstrings` supplies Japanese translations. The menu app stores System Default, English, or Japanese in App Group preferences and asks WidgetKit to reload after a change. Both executables inject the selected `Locale` into their SwiftUI view trees; strings created outside `Text`, dates, durations, and compact token values receive that locale explicitly. Swift code should not introduce Japanese UI text directly, except the locale-specific Japanese compact-number units used by `tokenCountLabel`.
 
 ## Performance expectations
 

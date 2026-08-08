@@ -10,16 +10,22 @@ struct RateLimitWindow: Codable, Equatable, Identifiable, Sendable {
     var resetDate: Date? { resetsAt.map { Date(timeIntervalSince1970: TimeInterval($0)) } }
 
     var durationLabel: String {
-        guard let minutes = windowDurationMins else { return String(localized: "Usage limit") }
-        if minutes == 300 { return String(localized: "5 hours") }
-        if minutes == 10_080 { return String(localized: "Weekly") }
+        durationLabel(locale: .current)
+    }
+
+    func durationLabel(locale: Locale) -> String {
+        guard let minutes = windowDurationMins else {
+            return AppLocalization.string("Usage limit", locale: locale)
+        }
+        if minutes == 300 { return AppLocalization.string("5 hours", locale: locale) }
+        if minutes == 10_080 { return AppLocalization.string("Weekly", locale: locale) }
         if minutes.isMultiple(of: 1_440) {
-            return String(format: String(localized: "%d days"), minutes / 1_440)
+            return AppLocalization.format("%d days", locale: locale, minutes / 1_440)
         }
         if minutes.isMultiple(of: 60) {
-            return String(format: String(localized: "%d hours"), minutes / 60)
+            return AppLocalization.format("%d hours", locale: locale, minutes / 60)
         }
-        return String(format: String(localized: "%d minutes"), minutes)
+        return AppLocalization.format("%d minutes", locale: locale, minutes)
     }
 }
 
@@ -243,10 +249,18 @@ enum SharedUsageStore {
         case appGroupUnavailable
 
         var errorDescription: String? {
+            let locale = DisplayLanguagePreferences.load().locale
             guard let appGroup = WidgetConstants.appGroup else {
-                return String(localized: "App Group is not configured. Select an Apple Development Team in Xcode.")
+                return AppLocalization.string(
+                    "App Group is not configured. Select an Apple Development Team in Xcode.",
+                    locale: locale
+                )
             }
-            return String(format: String(localized: "Could not open App Group %@. Check Signing & Capabilities."), appGroup)
+            return AppLocalization.format(
+                "Could not open App Group %@. Check Signing & Capabilities.",
+                locale: locale,
+                appGroup
+            )
         }
     }
 }
