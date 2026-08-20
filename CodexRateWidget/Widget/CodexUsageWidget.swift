@@ -90,37 +90,48 @@ private struct CodexWidgetView: View {
 
     var body: some View {
         switch family {
-        case .systemSmall: SmallUsageView(snapshot: entry.snapshot)
+        case .systemSmall: SmallUsageView(entry: entry)
         case .systemLarge: LargeUsageView(entry: entry)
-        default: MediumUsageView(snapshot: entry.snapshot)
+        default: MediumUsageView(entry: entry)
         }
     }
 }
 
 private struct SmallUsageView: View {
     @Environment(\.locale) private var locale
-    let snapshot: UsageSnapshot
+    let entry: UsageEntry
+
+    private var snapshot: UsageSnapshot { entry.snapshot }
+    private var paceWarning: Bool {
+        WeeklyPace.assessment(for: snapshot.weekly, at: snapshot.updatedAt)?.isWarning == true
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 AppLocalizedText("Codex").font(.headline)
                 Spacer()
-                Image(systemName: "gauge.with.dots.needle.50percent")
-                    .foregroundStyle(.secondary)
+                if paceWarning {
+                    WeeklyPaceWarningLamp(showLabel: false)
+                } else {
+                    Image(systemName: "gauge.with.dots.needle.50percent")
+                        .foregroundStyle(.secondary)
+                }
             }
             if let fiveHour = snapshot.fiveHour {
                 LimitRing(
                     title: AppLocalization.string("5 hours", locale: locale),
                     window: fiveHour,
-                    size: 88
+                    size: 88,
+                    paceWarning: false
                 )
                     .frame(maxWidth: .infinity)
             } else if let weekly = snapshot.weekly {
                 LimitRing(
                     title: AppLocalization.string("Weekly", locale: locale),
                     window: weekly,
-                    size: 88
+                    size: 88,
+                    paceWarning: paceWarning
                 )
                     .frame(maxWidth: .infinity)
             } else {
@@ -145,7 +156,12 @@ private struct SmallUsageView: View {
 
 private struct MediumUsageView: View {
     @Environment(\.locale) private var locale
-    let snapshot: UsageSnapshot
+    let entry: UsageEntry
+
+    private var snapshot: UsageSnapshot { entry.snapshot }
+    private var paceWarning: Bool {
+        WeeklyPace.assessment(for: snapshot.weekly, at: snapshot.updatedAt)?.isWarning == true
+    }
 
     var body: some View {
         HStack(spacing: 18) {
@@ -159,17 +175,22 @@ private struct MediumUsageView: View {
                 }
                 Spacer()
                 WeeklyResetDetails(window: snapshot.weekly)
+                if paceWarning {
+                    WeeklyPaceWarningLamp(showLabel: true)
+                }
             }
             Spacer()
             LimitRing(
                 title: AppLocalization.string("5 hours", locale: locale),
                 window: snapshot.fiveHour,
-                size: 92
+                size: 92,
+                paceWarning: false
             )
             LimitRing(
                 title: AppLocalization.string("Weekly", locale: locale),
                 window: snapshot.weekly,
-                size: 92
+                size: 92,
+                paceWarning: paceWarning
             )
         }
     }
@@ -180,6 +201,9 @@ private struct LargeUsageView: View {
     let entry: UsageEntry
 
     private var snapshot: UsageSnapshot { entry.snapshot }
+    private var paceWarning: Bool {
+        WeeklyPace.assessment(for: snapshot.weekly, at: snapshot.updatedAt)?.isWarning == true
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -193,17 +217,22 @@ private struct LargeUsageView: View {
                         WidgetVersionLabel()
                     }
                     WeeklyResetDetails(window: snapshot.weekly)
+                    if paceWarning {
+                        WeeklyPaceWarningLamp(showLabel: true)
+                    }
                 }
                 Spacer()
                 LimitRing(
                     title: AppLocalization.string("5 hours", locale: locale),
                     window: snapshot.fiveHour,
-                    size: 76
+                    size: 76,
+                    paceWarning: false
                 )
                 LimitRing(
                     title: AppLocalization.string("Weekly", locale: locale),
                     window: snapshot.weekly,
-                    size: 76
+                    size: 76,
+                    paceWarning: paceWarning
                 )
             }
 
@@ -325,6 +354,15 @@ private struct UsageHistorySection: View {
             in: entry.historyRange,
             through: entry.date
         )
+        let guidePoints = WeeklyPace.guidePoints(
+            for: entry.snapshot.weekly,
+            from: entry.date.addingTimeInterval(-entry.historyRange.duration),
+            through: entry.date
+        )
+        let assessment = WeeklyPace.assessment(
+            for: entry.snapshot.weekly,
+            at: entry.snapshot.updatedAt
+        )
 
         HStack(spacing: 8) {
             AppLocalizedText("Recorded on This Mac · Every 15 Minutes")
@@ -333,9 +371,12 @@ private struct UsageHistorySection: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
             Spacer(minLength: 4)
-            RemainingHistoryLegend(points: points)
+            RemainingHistoryLegend(
+                points: points,
+                showsWeeklyPace: !guidePoints.isEmpty
+            )
         }
-        if points.isEmpty {
+        if points.isEmpty && guidePoints.isEmpty {
             AppLocalizedText("History begins after the app's next refresh")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -343,6 +384,8 @@ private struct UsageHistorySection: View {
         } else {
             RemainingCapacityChart(
                 points: points,
+                guidePoints: guidePoints,
+                weeklyAssessment: assessment,
                 range: entry.historyRange,
                 through: entry.date
             )
@@ -372,6 +415,7 @@ private struct WidgetOptionButton<Intent: AppIntent>: View {
 private struct RemainingHistoryLegend: View {
     @Environment(\.locale) private var locale
     let points: [RemainingUsageChartPoint]
+    let showsWeeklyPace: Bool
 
     var body: some View {
         HStack(spacing: 7) {
@@ -381,6 +425,16 @@ private struct RemainingHistoryLegend: View {
                         .fill(remainingHistoryColor(kind))
                         .frame(width: 5, height: 5)
                     Text(remainingHistoryTitle(kind, locale: locale))
+                        .font(.system(size: 8, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            if showsWeeklyPace {
+                HStack(spacing: 3) {
+                    DottedPaceLine()
+                        .stroke(.secondary, style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                        .frame(width: 10, height: 4)
+                    AppLocalizedText("7-day pace")
                         .font(.system(size: 8, weight: .medium, design: .rounded))
                         .foregroundStyle(.secondary)
                 }
@@ -398,27 +452,62 @@ private struct RemainingHistoryLegend: View {
 private struct RemainingCapacityChart: View {
     @Environment(\.locale) private var locale
     let points: [RemainingUsageChartPoint]
+    let guidePoints: [WeeklyPacePoint]
+    let weeklyAssessment: WeeklyPaceAssessment?
     let range: RemainingHistoryRange
     let through: Date
 
     var body: some View {
         VStack(spacing: 1) {
-            Chart(points) { point in
-                LineMark(
-                    x: .value(AppLocalization.string("Time", locale: locale), point.capturedAt),
-                    y: .value(AppLocalization.string("Remaining %", locale: locale), point.remainingPercent),
-                    series: .value(AppLocalization.string("Series", locale: locale), point.seriesID)
-                )
-                .foregroundStyle(remainingHistoryColor(point.kind))
-                .lineStyle(StrokeStyle(lineWidth: 1.6, lineCap: .round, lineJoin: .round))
-
-                if points.count <= 12 {
-                    PointMark(
+            Chart {
+                ForEach(points) { point in
+                    LineMark(
                         x: .value(AppLocalization.string("Time", locale: locale), point.capturedAt),
-                        y: .value(AppLocalization.string("Remaining %", locale: locale), point.remainingPercent)
+                        y: .value(AppLocalization.string("Remaining %", locale: locale), point.remainingPercent),
+                        series: .value(AppLocalization.string("Series", locale: locale), point.seriesID)
                     )
                     .foregroundStyle(remainingHistoryColor(point.kind))
-                    .symbolSize(10)
+                    .lineStyle(StrokeStyle(lineWidth: 1.6, lineCap: .round, lineJoin: .round))
+
+                    if points.count <= 12 {
+                        PointMark(
+                            x: .value(AppLocalization.string("Time", locale: locale), point.capturedAt),
+                            y: .value(AppLocalization.string("Remaining %", locale: locale), point.remainingPercent)
+                        )
+                        .foregroundStyle(remainingHistoryColor(point.kind))
+                        .symbolSize(10)
+                    }
+                }
+
+                ForEach(guidePoints) { point in
+                    LineMark(
+                        x: .value(AppLocalization.string("Time", locale: locale), point.date),
+                        y: .value(
+                            AppLocalization.string("7-day pace", locale: locale),
+                            point.targetRemainingPercent
+                        ),
+                        series: .value(
+                            AppLocalization.string("Series", locale: locale),
+                            point.seriesID
+                        )
+                    )
+                    .foregroundStyle(.secondary)
+                    .lineStyle(StrokeStyle(lineWidth: 1.3, dash: [2, 3]))
+                }
+
+                if let weeklyAssessment {
+                    PointMark(
+                        x: .value(
+                            AppLocalization.string("Time", locale: locale),
+                            weeklyAssessment.assessedAt
+                        ),
+                        y: .value(
+                            AppLocalization.string("Remaining %", locale: locale),
+                            weeklyAssessment.actualRemainingPercent
+                        )
+                    )
+                    .foregroundStyle(weeklyAssessment.isWarning ? Color.red : Color.green)
+                    .symbolSize(20)
                 }
             }
             .chartXScale(domain: startDate...through)
@@ -547,6 +636,7 @@ private struct LimitRing: View {
     let title: String
     let window: RateLimitWindow?
     let size: CGFloat
+    let paceWarning: Bool
 
     var body: some View {
         VStack(spacing: 3) {
@@ -574,14 +664,57 @@ private struct LimitRing: View {
                 }
             }
             .frame(width: size, height: size)
+            .overlay(alignment: .topTrailing) {
+                if paceWarning {
+                    WeeklyPaceWarningLamp(showLabel: false)
+                        .background(.background, in: Circle())
+                }
+            }
             Text(title).font(.caption2.weight(.semibold))
         }
     }
 
     private func color(_ remaining: Int) -> Color {
+        if paceWarning { return .red }
         if remaining <= 20 { return .red }
         if remaining <= 40 { return .orange }
         return .green
+    }
+}
+
+private struct WeeklyPaceWarningLamp: View {
+    @Environment(\.locale) private var locale
+    let showLabel: Bool
+
+    @ViewBuilder
+    var body: some View {
+        if showLabel {
+            Label {
+                AppLocalizedText("Weekly pace warning")
+            } icon: {
+                Image(systemName: "exclamationmark.circle.fill")
+            }
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.red)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        } else {
+            Image(systemName: "exclamationmark.circle.fill")
+                .foregroundStyle(.red)
+                .accessibilityLabel(Text(verbatim: AppLocalization.string(
+                    "Weekly pace warning",
+                    locale: locale
+                )))
+        }
+    }
+}
+
+private struct DottedPaceLine: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.midY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
+        return path
     }
 }
 

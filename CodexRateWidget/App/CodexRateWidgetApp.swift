@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 import WidgetKit
 
@@ -44,7 +45,10 @@ struct CodexRateWidgetApp: App {
             Label {
                 AppLocalizedText("Codex Rate")
             } icon: {
-                Image(systemName: "gauge.with.dots.needle.50percent")
+                Image(systemName: WeeklyPace.assessment(
+                    for: controller.snapshot.weekly,
+                    at: controller.snapshot.updatedAt
+                )?.isWarning == true ? "exclamationmark.circle.fill" : "gauge.with.dots.needle.50percent")
             }
                 .environment(\.locale, displayLanguage.locale)
         }
@@ -85,15 +89,22 @@ private struct MenuContent: View {
             HStack(spacing: 12) {
                 LimitCard(
                     title: AppLocalization.string("5 hours", locale: locale),
-                    window: controller.snapshot.fiveHour
+                    window: controller.snapshot.fiveHour,
+                    paceWarning: false
                 )
                 LimitCard(
                     title: AppLocalization.string("Weekly", locale: locale),
-                    window: controller.snapshot.weekly
+                    window: controller.snapshot.weekly,
+                    paceWarning: weeklyPaceAssessment?.isWarning == true
                 )
             }
 
             WeeklyResetRow(window: controller.snapshot.weekly)
+            WeeklyPaceSection(
+                window: controller.snapshot.weekly,
+                history: controller.remainingHistory,
+                through: controller.snapshot.updatedAt
+            )
 
             if let error = controller.errorMessage {
                 Label(error, systemImage: "exclamationmark.triangle.fill")
@@ -170,6 +181,13 @@ private struct MenuContent: View {
             )
         )
     }
+
+    private var weeklyPaceAssessment: WeeklyPaceAssessment? {
+        WeeklyPace.assessment(
+            for: controller.snapshot.weekly,
+            at: controller.snapshot.updatedAt
+        )
+    }
 }
 
 private struct WeeklyResetRow: View {
@@ -217,6 +235,7 @@ private struct LimitCard: View {
     @Environment(\.locale) private var locale
     let title: String
     let window: RateLimitWindow?
+    let paceWarning: Bool
 
     var body: some View {
         VStack(spacing: 7) {
@@ -237,6 +256,17 @@ private struct LimitCard: View {
                 }
             }
             .frame(width: 76, height: 76)
+            .overlay(alignment: .topTrailing) {
+                if paceWarning {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundStyle(.red)
+                        .background(.background, in: Circle())
+                        .accessibilityLabel(Text(verbatim: AppLocalization.string(
+                            "Weekly pace warning",
+                            locale: locale
+                        )))
+                }
+            }
             Text(resetText)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -249,6 +279,7 @@ private struct LimitCard: View {
 
     private var color: Color {
         guard let remaining = window?.remainingPercent else { return .secondary }
+        if paceWarning { return .red }
         if remaining <= 20 { return .red }
         if remaining <= 40 { return .orange }
         return .green
@@ -267,5 +298,125 @@ private struct LimitCard: View {
                     .locale(locale)
             )
         )
+    }
+}
+
+private struct WeeklyPaceSection: View {
+    @Environment(\.locale) private var locale
+    let window: RateLimitWindow?
+    let history: RemainingUsageHistory
+    let through: Date
+
+    @ViewBuilder
+    var body: some View {
+        if
+            let window,
+            let assessment = WeeklyPace.assessment(for: window, at: through)
+        {
+            let visibleStart = through.addingTimeInterval(-WeeklyPace.duration)
+            let guidePoints = WeeklyPace.guidePoints(
+                for: window,
+                from: visibleStart,
+                through: through
+            )
+            let historyPoints = history.chartPoints(in: .sevenDays, through: through)
+                .filter { $0.kind == .weekly }
+
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 6) {
+                    AppLocalizedText("7-day pace")
+                        .font(.caption.weight(.semibold))
+                    Spacer()
+                    if assessment.isWarning {
+                        Label {
+                            AppLocalizedText("Weekly pace warning")
+                        } icon: {
+                            Image(systemName: "exclamationmark.circle.fill")
+                        }
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.red)
+                    } else {
+                        Text(AppLocalization.format(
+                            "Pace target %d%%",
+                            locale: locale,
+                            Int(assessment.targetRemainingPercent.rounded())
+                        ))
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Chart {
+                    ForEach(guidePoints) { point in
+                        LineMark(
+                            x: .value(AppLocalization.string("Time", locale: locale), point.date),
+                            y: .value(
+                                AppLocalization.string("7-day pace", locale: locale),
+                                point.targetRemainingPercent
+                            ),
+                            series: .value(
+                                AppLocalization.string("Series", locale: locale),
+                                point.seriesID
+                            )
+                        )
+                        .foregroundStyle(.secondary)
+                        .lineStyle(StrokeStyle(lineWidth: 1.4, dash: [2, 3]))
+                    }
+
+                    ForEach(historyPoints) { point in
+                        LineMark(
+                            x: .value(AppLocalization.string("Time", locale: locale), point.capturedAt),
+                            y: .value(
+                                AppLocalization.string("Remaining %", locale: locale),
+                                point.remainingPercent
+                            ),
+                            series: .value(AppLocalization.string("Series", locale: locale), point.seriesID)
+                        )
+                        .foregroundStyle(assessment.isWarning ? Color.red : Color.green)
+                        .lineStyle(StrokeStyle(lineWidth: 1.8, lineCap: .round, lineJoin: .round))
+                    }
+
+                    PointMark(
+                        x: .value(AppLocalization.string("Time", locale: locale), assessment.assessedAt),
+                        y: .value(
+                            AppLocalization.string("Remaining %", locale: locale),
+                            assessment.actualRemainingPercent
+                        )
+                    )
+                    .foregroundStyle(assessment.isWarning ? Color.red : Color.green)
+                    .symbolSize(28)
+                }
+                .chartXScale(domain: visibleStart...through)
+                .chartYScale(domain: 0...100)
+                .chartXAxis(.hidden)
+                .chartYAxis {
+                    AxisMarks(position: .leading, values: [0, 50, 100]) { value in
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                            .foregroundStyle(.secondary.opacity(0.15))
+                        AxisValueLabel {
+                            if let percent = value.as(Int.self) {
+                                Text("\(percent)%")
+                                    .font(.system(size: 8, design: .rounded))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+                .frame(height: 58)
+                .padding(7)
+                .background(
+                    assessment.isWarning ? Color.red.opacity(0.08) : Color.secondary.opacity(0.06),
+                    in: RoundedRectangle(cornerRadius: 10)
+                )
+                .accessibilityLabel(Text(verbatim: paceAccessibilityLabel(assessment)))
+            }
+        }
+    }
+
+    private func paceAccessibilityLabel(_ assessment: WeeklyPaceAssessment) -> String {
+        let key = assessment.isWarning
+            ? "Weekly remaining is at least 10 points below the 7-day pace"
+            : "Weekly remaining is within 10 points of the 7-day pace"
+        return AppLocalization.string(key, locale: locale)
     }
 }

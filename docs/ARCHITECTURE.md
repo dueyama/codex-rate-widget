@@ -48,6 +48,12 @@ Codex returns the current remaining percentage but does not return a historical 
 
 This chart must be labeled as recorded on this Mac. It must not imply that Codex supplied a historical series, interpolate periods when the app was not recording, or invent a five-hour value while that window is absent. An observed increase at a reset remains visible in the recorded series.
 
+### Derived weekly pace guidance
+
+The weekly pace guide is calculated locally from the official weekly reset timestamp and the known 10,080-minute window. The app and large widget show the same past seven-day time domain and repeat the current reset cadence backward as separate straight segments from 100% at each inferred cycle start to 0% at reset. Keeping the segments separate avoids drawing a false dotted connection from 0% to 100% across a reset. The app and widget enter their warning presentation when the current official remaining percentage is at least 10 percentage points below the current-cycle line.
+
+The guide and warning are advisory UI derived from official current values; they are not an account limit, forecast, or historical series returned by Codex. If the weekly window or a valid current reset cycle is unavailable, no pace assessment or warning is shown.
+
 ### Estimated
 
 Codex does not return an official token breakdown by local project directory. The app therefore:

@@ -5,6 +5,7 @@ import WidgetKit
 @MainActor
 final class UsageController: ObservableObject {
     @Published private(set) var snapshot = SharedUsageStore.load()
+    @Published private(set) var remainingHistory = SharedRemainingUsageHistoryStore.load()
     @Published private(set) var isRefreshing = false
     @Published private(set) var errorMessage = SharedUsageStore.lastError
     @Published var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -32,7 +33,7 @@ final class UsageController: ObservableObject {
             try SharedUsageStore.save(newSnapshot)
             snapshot = newSnapshot
             do {
-                try SharedRemainingUsageHistoryStore.record(newSnapshot)
+                remainingHistory = try SharedRemainingUsageHistoryStore.record(newSnapshot)
                 errorMessage = nil
             } catch {
                 errorMessage = error.localizedDescription

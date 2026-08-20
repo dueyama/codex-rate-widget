@@ -29,6 +29,124 @@ struct RateLimitWindow: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
+struct WeeklyPaceAssessment: Equatable, Sendable {
+    let assessedAt: Date
+    let actualRemainingPercent: Int
+    let targetRemainingPercent: Double
+
+    var shortfallPercent: Double {
+        max(0, targetRemainingPercent - Double(actualRemainingPercent))
+    }
+
+    var isWarning: Bool {
+        shortfallPercent >= WeeklyPace.warningMarginPercent
+    }
+}
+
+struct WeeklyPacePoint: Equatable, Identifiable, Sendable {
+    let date: Date
+    let targetRemainingPercent: Double
+    let cycleEnd: Date
+
+    var id: String {
+        "\(cycleEnd.timeIntervalSince1970)-\(date.timeIntervalSince1970)"
+    }
+
+    var seriesID: String {
+        "weekly-pace-\(cycleEnd.timeIntervalSince1970)"
+    }
+}
+
+enum WeeklyPace {
+    static let duration: TimeInterval = 7 * 86_400
+    static let warningMarginPercent = 10.0
+
+    static func assessment(
+        for window: RateLimitWindow?,
+        at date: Date = .now
+    ) -> WeeklyPaceAssessment? {
+        guard
+            let window,
+            window.windowDurationMins == 10_080,
+            let targetRemainingPercent = targetRemainingPercent(for: window, at: date)
+        else { return nil }
+
+        return WeeklyPaceAssessment(
+            assessedAt: date,
+            actualRemainingPercent: window.remainingPercent,
+            targetRemainingPercent: targetRemainingPercent
+        )
+    }
+
+    static func guidePoints(
+        for window: RateLimitWindow?,
+        from visibleStart: Date,
+        through visibleEnd: Date
+    ) -> [WeeklyPacePoint] {
+        guard
+            let window,
+            window.windowDurationMins == 10_080,
+            let resetDate = window.resetDate,
+            visibleStart < visibleEnd,
+            targetRemainingPercent(for: window, at: visibleEnd) != nil
+        else { return [] }
+
+        // The API exposes only the current reset timestamp. Repeat that
+        // seven-day cadence backward so a historical chart can compare prior
+        // observations with the pace that applied in each visible cycle.
+        let firstCycleOffset = floor(visibleStart.timeIntervalSince(resetDate) / duration) + 1
+        var cycleEnd = resetDate.addingTimeInterval(firstCycleOffset * duration)
+        var points: [WeeklyPacePoint] = []
+
+        while cycleEnd.addingTimeInterval(-duration) < visibleEnd {
+            let cycleStart = cycleEnd.addingTimeInterval(-duration)
+            let start = max(visibleStart, cycleStart)
+            let end = min(visibleEnd, cycleEnd)
+
+            if start < end {
+                points.append(WeeklyPacePoint(
+                    date: start,
+                    targetRemainingPercent: targetRemainingPercent(
+                        inCycleEndingAt: cycleEnd,
+                        at: start
+                    ),
+                    cycleEnd: cycleEnd
+                ))
+                points.append(WeeklyPacePoint(
+                    date: end,
+                    targetRemainingPercent: targetRemainingPercent(
+                        inCycleEndingAt: cycleEnd,
+                        at: end
+                    ),
+                    cycleEnd: cycleEnd
+                ))
+            }
+
+            cycleEnd = cycleEnd.addingTimeInterval(duration)
+        }
+
+        return points
+    }
+
+    private static func targetRemainingPercent(
+        for window: RateLimitWindow,
+        at date: Date
+    ) -> Double? {
+        guard let resetDate = window.resetDate else { return nil }
+        let cycleStart = resetDate.addingTimeInterval(-duration)
+        guard date >= cycleStart, date <= resetDate else { return nil }
+
+        return resetDate.timeIntervalSince(date) / duration * 100
+    }
+
+    private static func targetRemainingPercent(
+        inCycleEndingAt cycleEnd: Date,
+        at date: Date
+    ) -> Double {
+        cycleEnd.timeIntervalSince(date) / duration * 100
+    }
+}
+
 enum ResetScheduleFormatting {
     static func dateTime(
         _ date: Date,

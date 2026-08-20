@@ -14,8 +14,10 @@ Codex Rate Widget is a SwiftUI and WidgetKit app that displays your currently av
 ## What It Shows
 
 - Small: the remaining capacity of the primary active usage window
-- Medium: the remaining capacity of the five-hour and weekly usage windows, plus the official weekly reset date and time remaining
-- Large: the remaining capacity, official weekly reset schedule, local estimated token usage by project, and an interactive chart that switches between official daily token usage and remaining-capacity history recorded on this Mac for the past 24 hours or seven days
+- Medium: the remaining capacity of the five-hour and weekly usage windows, the official weekly reset date and time remaining, and a warning lamp when weekly capacity falls materially behind a constant seven-day pace
+- Large: the remaining capacity, official weekly reset schedule, local estimated token usage by project, and an interactive chart that switches between official daily token usage and remaining-capacity history recorded on this Mac for the past 24 hours or seven days; the history chart includes a dotted constant-consumption guide for the weekly limit
+
+The menu-bar app and large widget chart the same locally recorded seven-day remaining-capacity history. Their dotted guides repeat the current official seven-day reset cadence backward across the visible history, from 100% at each inferred cycle start to 0% at its reset. The guide is a locally calculated pace reference, not an additional official limit. When actual weekly remaining capacity is at least 10 percentage points below the current-cycle guide, the app and all widget sizes show a red warning lamp and render the weekly ring in red.
 
 The app does not assume that a five-hour window always exists. If Codex does not return a window with `windowDurationMins = 300`, the app shows it as currently unavailable. If the window is restored in a future response, the ring appears again automatically.
 
@@ -25,9 +27,10 @@ The app does not assume that a five-hour window always exists. If Codex does not
 - Daily token usage: `account/usage/read`
 - Official token usage: cumulative totals and daily buckets returned by Codex's `account/usage/read` method
 - Remaining-capacity history: the host app's bounded local record of current official `account/rateLimits/read` values, sampled after successful refreshes and retained for seven days
+- Weekly pace guide and warning: a local calculation from the official weekly remaining percentage, reset timestamp, and seven-day window duration
 - Per-project usage: a read-only aggregation of top-level local sessions in `$CODEX_HOME/state_5.sqlite`, or `~/.codex/state_5.sqlite` when `CODEX_HOME` is unset, that were updated during the seven-day period including today, grouped by `cwd`; this can include user sessions, automations, and legacy rows with an unknown source. The app uses those proportions to estimate how the official seven-day token total is distributed among projects. Subagents are excluded to avoid counting inherited parent context twice.
 
-The remaining-capacity chart is not an official historical series returned by Codex. It is a local history of official current values observed by this Mac every 15 minutes while the host app is running. The chart leaves gaps when the app was not recording, retains observed jumps when a limit resets, and automatically resumes the five-hour series if Codex reports that window again.
+The remaining-capacity chart is not an official historical series returned by Codex. It is a local history of official current values observed by this Mac every 15 minutes while the host app is running. The chart leaves gaps when the app was not recording, retains observed jumps when a limit resets, and automatically resumes the five-hour series if Codex reports that window again. Its dotted weekly guide repeats the current official reset cadence backward across the visible history as separate 100%-to-0% cycle segments; it does not predict future Codex usage or change the official limit.
 
 The per-project figures are estimates that distribute the official seven-day total according to locally observed proportions. A thread's `tokens_used` value is cumulative, so the app uses it only to calculate the proportions between projects; the displayed total comes from Codex's official aggregate. If that official total is unavailable or zero, the app does not display raw local counters as project usage. Cloud runs and activity on other Macs cannot be attributed to a local project, so this is not an exact breakdown.
 

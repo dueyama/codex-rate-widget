@@ -76,6 +76,95 @@ final class UsageSnapshotTests: XCTestCase {
         )
     }
 
+    func testWeeklyPaceUsesAConstantSevenDayTargetAndTenPointWarningMargin() throws {
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        let resetDate = now.addingTimeInterval(WeeklyPace.duration / 2)
+        let resetTimestamp = Int(resetDate.timeIntervalSince1970)
+
+        let onPace = RateLimitWindow(
+            usedPercent: 50,
+            windowDurationMins: 10_080,
+            resetsAt: resetTimestamp
+        )
+        let warning = RateLimitWindow(
+            usedPercent: 60,
+            windowDurationMins: 10_080,
+            resetsAt: resetTimestamp
+        )
+
+        let onPaceAssessment = try XCTUnwrap(WeeklyPace.assessment(for: onPace, at: now))
+        XCTAssertEqual(onPaceAssessment.assessedAt, now)
+        XCTAssertEqual(onPaceAssessment.targetRemainingPercent, 50, accuracy: 0.001)
+        XCTAssertEqual(onPaceAssessment.shortfallPercent, 0, accuracy: 0.001)
+        XCTAssertFalse(onPaceAssessment.isWarning)
+
+        let warningAssessment = try XCTUnwrap(WeeklyPace.assessment(for: warning, at: now))
+        XCTAssertEqual(warningAssessment.shortfallPercent, 10, accuracy: 0.001)
+        XCTAssertTrue(warningAssessment.isWarning)
+    }
+
+    func testWeeklyPaceRejectsMissingOrStaleWeeklyCycles() {
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        let fiveHour = RateLimitWindow(
+            usedPercent: 50,
+            windowDurationMins: 300,
+            resetsAt: Int(now.addingTimeInterval(3_600).timeIntervalSince1970)
+        )
+        let expiredWeekly = RateLimitWindow(
+            usedPercent: 50,
+            windowDurationMins: 10_080,
+            resetsAt: Int(now.addingTimeInterval(-1).timeIntervalSince1970)
+        )
+
+        XCTAssertNil(WeeklyPace.assessment(for: fiveHour, at: now))
+        XCTAssertNil(WeeklyPace.assessment(for: expiredWeekly, at: now))
+        XCTAssertNil(WeeklyPace.assessment(for: nil, at: now))
+    }
+
+    func testWeeklyPaceGuideClipsToTheVisibleChartRange() throws {
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        let resetDate = now.addingTimeInterval(2 * 86_400)
+        let weekly = RateLimitWindow(
+            usedPercent: 35,
+            windowDurationMins: 10_080,
+            resetsAt: Int(resetDate.timeIntervalSince1970)
+        )
+        let visibleStart = now.addingTimeInterval(-86_400)
+
+        let points = WeeklyPace.guidePoints(
+            for: weekly,
+            from: visibleStart,
+            through: now
+        )
+
+        XCTAssertEqual(points.map(\.date), [visibleStart, now])
+        XCTAssertEqual(points[0].targetRemainingPercent, 72.0 / 168.0 * 100, accuracy: 0.001)
+        XCTAssertEqual(points[1].targetRemainingPercent, 48.0 / 168.0 * 100, accuracy: 0.001)
+    }
+
+    func testWeeklyPaceGuideRepeatsPastCyclesWithoutJoiningAcrossReset() throws {
+        let resetDate = Date(timeIntervalSince1970: 2_000_000_000)
+        let weekly = RateLimitWindow(
+            usedPercent: 20,
+            windowDurationMins: 10_080,
+            resetsAt: Int(resetDate.timeIntervalSince1970)
+        )
+        let visibleStart = resetDate.addingTimeInterval(-2 * WeeklyPace.duration)
+        let visibleEnd = resetDate.addingTimeInterval(-WeeklyPace.duration / 2)
+
+        let points = WeeklyPace.guidePoints(
+            for: weekly,
+            from: visibleStart,
+            through: visibleEnd
+        )
+
+        XCTAssertEqual(points.count, 4)
+        XCTAssertEqual(points.map(\.targetRemainingPercent), [100, 0, 100, 50])
+        XCTAssertEqual(points[1].date, points[2].date)
+        XCTAssertNotEqual(points[1].seriesID, points[2].seriesID)
+        XCTAssertEqual(Set(points.map(\.id)).count, points.count)
+    }
+
     func testDailyUsageHistoryFiltersAndSortsTheLastSevenDays() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 0))

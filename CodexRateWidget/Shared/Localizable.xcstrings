@@ -37,6 +37,9 @@
     "7d" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "7日" } } }
     },
+    "7-day pace" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "7日基準ペース" } } }
+    },
     "Approx. %@" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "約%@" } } }
     },
@@ -130,6 +133,9 @@
     "Not fetched" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "未取得" } } }
     },
+    "Pace target %d%%" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "基準 %d%%" } } }
+    },
     "Daily Usage" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "日別使用量" } } }
     },
@@ -222,6 +228,15 @@
     },
     "Weekly limit" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間枠" } } }
+    },
+    "Weekly pace warning" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間ペース警告" } } }
+    },
+    "Weekly remaining is at least 10 points below the 7-day pace" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間の残り容量が7日基準を10ポイント以上下回っています" } } }
+    },
+    "Weekly remaining is within 10 points of the 7-day pace" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "週間の残り容量は7日基準の10ポイント以内です" } } }
     },
     "Widget syncs every 15 minutes" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "ウィジェットは15分ごとに同期" } } }
