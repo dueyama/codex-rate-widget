@@ -10,8 +10,8 @@ Codex Rate Widget is a source-distributed macOS menu-bar app and WidgetKit exten
 - Public commits and annotated tags must use a GitHub-provided no-reply email; identity names and every ref name remain subject to the configured private-pattern audit.
 - Keep `CODEX_RATE_WIDGET_DEVELOPMENT_TEAM` empty in tracked `Config/Shared.xcconfig`. Store a Team ID only in ignored `Config/Local.xcconfig` or pass a command-line override; never paste a literal ID into the project.
 - Keep the main app and widget extension App Group identical. It is derived from `$(TeamIdentifierPrefix)$(CODEX_RATE_WIDGET_BUNDLE_ID)` and read at runtime from `CodexRateWidgetAppGroup` in each built Info.plist. Do not substitute `AppIdentifierPrefix`; macOS validates this group form against the signing Team ID.
-- Official limits, daily buckets, and lifetime tokens come from Codex `account/*` methods. Never label locally derived project attribution as official.
-- Project figures are estimates. The analyzer may read `~/.codex/state_5.sqlite` read-only, but it must not scan or load project directories. Without a positive official seven-day total, it must return no project figures rather than expose cumulative local counters.
+- Official limits, daily buckets, and lifetime tokens come from Codex `account/*` methods.
+- Do not read the local Codex thread database or scan project directories. The app intentionally avoids per-project token attribution because the account methods do not supply an exact project breakdown.
 - The short-lived `codex app-server --stdio` process must be terminated after each refresh. Clear both `FileHandle.readabilityHandler` callbacks at EOF and on every finish path; leaving them installed causes sustained high CPU.
 - Keep every mutable `RequestState` field behind its lock and allow exactly one finish path to resume the continuation.
 - English is the development and fallback language. Japanese belongs in `Localizable.xcstrings`; all non-Japanese locales fall back to English.
@@ -23,7 +23,6 @@ Codex Rate Widget is a source-distributed macOS menu-bar app and WidgetKit exten
 ## Source map
 
 - `CodexRateWidget/App/CodexRateLimitClient.swift`: CLI discovery, app-server RPC, process lifecycle.
-- `CodexRateWidget/App/ProjectUsageAnalyzer.swift`: read-only local SQLite aggregation.
 - `CodexRateWidget/App/UsageController.swift`: 15-minute refresh loop and WidgetKit reload.
 - `CodexRateWidget/Shared/BuildVersionInfo.swift`: bundle version parsing and the shared compact label.
 - `CodexRateWidget/Shared/DisplayLanguage.swift`: shared system/English/Japanese preference and explicit-locale string lookup.
@@ -55,4 +54,4 @@ Codex Rate Widget is a source-distributed macOS menu-bar app and WidgetKit exten
 
 ## Unstable dependencies
 
-The `account/rateLimits/read`, `account/usage/read`, `state_5.sqlite`, and `threads` schema are Codex implementation interfaces, not stable public APIs. Decode defensively, preserve partial functionality when detailed usage is unavailable, and document behavior changes.
+The `account/rateLimits/read` and `account/usage/read` methods are Codex implementation interfaces, not stable public APIs. Decode defensively, preserve partial functionality when detailed usage is unavailable, and document behavior changes.

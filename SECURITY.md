@@ -8,7 +8,7 @@ Security fixes are made on the latest source version. Older source snapshots are
 
 Use GitHub's private vulnerability-reporting flow under the repository's **Security** tab. Do not disclose a vulnerability in a public issue before a fix is available.
 
-Do not include Apple signing identities, Team IDs, private keys, provisioning profiles, Codex credentials, `Config/Local.xcconfig`, `state_5.sqlite`, App Group snapshots, or unredacted logs in a report. Reduce any diagnostic material to the smallest sanitized reproduction.
+Do not include Apple signing identities, Team IDs, private keys, provisioning profiles, Codex credentials, `Config/Local.xcconfig`, App Group snapshots, or unredacted logs in a report. Reduce any diagnostic material to the smallest sanitized reproduction.
 
 If private vulnerability reporting has not yet been enabled, contact the maintainer through a private channel listed on the maintainer's GitHub profile and include only a high-level description initially.
 

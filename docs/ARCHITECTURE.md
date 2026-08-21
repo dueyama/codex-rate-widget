@@ -5,21 +5,20 @@
 Codex Rate Widget has two executables that share a small JSON snapshot through an App Group. `CODEX_HOME` overrides the default `~/.codex` state location when it is set.
 
 ```text
-Codex CLI app-server              ~/.codex/state_5.sqlite
-        |                                  |
-        | official account data            | read-only local activity
-        +----------------+-----------------+
-                         |
-                  Host menu-bar app
-                         |
-             UsageSnapshot + bounded history
-                         |
-                    App Group file
-                         |
-                  WidgetKit extension
+Codex CLI app-server
+        |
+        | official account data
+        |
+Host menu-bar app
+        |
+UsageSnapshot + bounded history
+        |
+   App Group files
+        |
+WidgetKit extension
 ```
 
-The size of a project directory does not affect this data path. Only stored thread metadata is queried; source trees are never enumerated.
+Project directories and the local Codex thread database are outside this data path.
 
 ## Components
 
@@ -27,7 +26,6 @@ The size of a project directory does not affect this data path. Only stored thre
 | --- | --- | --- |
 | `UsageController` | Initial refresh, 15-minute scheduling, persistence, timeline reload | Host lifetime |
 | `CodexRateLimitClient` | Find Codex CLI, request account data, stop the child process | One request at a time |
-| `ProjectUsageAnalyzer` | Aggregate recent, non-subagent thread metadata by `cwd` | During refresh |
 | `SharedUsageStore` | Atomically save/load one Codable snapshot | Short file access |
 | `SharedRemainingUsageHistoryStore` | Atomically save/load at most seven days of 15-minute remaining-capacity samples | Short file access |
 | `DisplayLanguagePreferences` | Share the system/English/Japanese display choice through App Group preferences | On app and widget rendering |
@@ -53,18 +51,6 @@ This chart must be labeled as recorded on this Mac. It must not imply that Codex
 The weekly pace guide is calculated locally from the official weekly reset timestamp and the known 10,080-minute window. The app and large widget show the same past seven-day time domain and repeat the current reset cadence backward as separate straight segments from 100% at each inferred cycle start to 0% at reset. Keeping the segments separate avoids drawing a false dotted connection from 0% to 100% across a reset. The app and widget enter their warning presentation when the current official remaining percentage is at least 10 percentage points below the current-cycle line.
 
 The guide and warning are advisory UI derived from official current values; they are not an account limit, forecast, or historical series returned by Codex. If the weekly window or a valid current reset cycle is unavailable, no pace assessment or warning is shown.
-
-### Estimated
-
-Codex does not return an official token breakdown by local project directory. The app therefore:
-
-1. Reads recent top-level, non-subagent rows from `threads`.
-2. Groups cumulative `tokens_used` by `cwd`.
-3. Uses those local proportions to allocate the official seven-day total.
-
-The result must always be labeled **Local Estimate · Unofficial**. It is not suitable for billing or auditing.
-
-The local counters are cumulative, not seven-day values. If Codex does not provide a positive official seven-day total, the analyzer returns no project rows. It must never fall back to displaying the raw counters.
 
 ## Process lifecycle
 
@@ -107,7 +93,7 @@ The app executable is also the unit-test host. `AppRuntime` detects the XCTest e
 
 ## Local persistence
 
-`SharedUsageStore` atomically overwrites one latest JSON snapshot in the App Group container and mirrors it in App Group preferences for compatibility with an older cached extension. The snapshot contains the original local `cwd` paths for the displayed project estimates; it is never sent by the app.
+`SharedUsageStore` atomically overwrites one latest JSON snapshot in the App Group container and mirrors it in App Group preferences for compatibility with an older cached extension. It is never sent directly by the app.
 
 `SharedRemainingUsageHistoryStore` uses a separate atomically rewritten JSON file. It replaces repeated observations in the same 15-minute bucket and removes samples older than seven days, keeping storage and rendering cost bounded. Chart selection, time range, display language, and the latest error message use App Group preferences. None of these files are sent by the app.
 
@@ -128,7 +114,6 @@ English source strings are the fallback. `Localizable.xcstrings` supplies Japane
 - Missing or insufficient local history: preserve the official daily-token view and explain that recording starts after an app refresh.
 - Recording gaps and missing windows: split the remaining-capacity line rather than interpolate across them.
 - Daily usage unavailable: retain remaining-capacity functionality.
-- Official seven-day total unavailable or zero: omit project estimates; never show raw cumulative thread counters.
 - Missing Codex CLI: show a localized actionable error.
 - Invalid App Group: show a localized signing/configuration error.
 - Schema or protocol change: fail without modifying the local Codex database.

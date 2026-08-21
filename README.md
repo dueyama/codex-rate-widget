@@ -15,9 +15,9 @@ Codex Rate Widget is a SwiftUI and WidgetKit app that displays your currently av
 
 - Small: the remaining capacity of the primary active usage window
 - Medium: the remaining capacity of the five-hour and weekly usage windows, the official weekly reset date and time remaining, and a warning lamp when weekly capacity falls materially behind a constant seven-day pace
-- Large: the remaining capacity, official weekly reset schedule, local estimated token usage by project, and an interactive chart that switches between official daily token usage and remaining-capacity history recorded on this Mac for the past 24 hours or seven days; the history chart includes a dotted constant-consumption guide for the weekly limit
+- Large: the remaining capacity, official weekly reset schedule, and an expanded interactive chart that switches between official daily token usage and remaining-capacity history recorded on this Mac for the past 24 hours or seven days; the history chart includes a dotted constant-consumption guide for the weekly limit
 
-The menu-bar app and large widget chart the same locally recorded seven-day remaining-capacity history. Their dotted guides repeat the current official seven-day reset cadence backward across the visible history, from 100% at each inferred cycle start to 0% at its reset. The guide is a locally calculated pace reference, not an additional official limit. When actual weekly remaining capacity is at least 10 percentage points below the current-cycle guide, the app and all widget sizes show a red warning lamp and render the weekly ring in red.
+The menu-bar app and large widget chart the same locally recorded seven-day remaining-capacity history. Their dotted guides repeat the current official seven-day reset cadence backward across the visible history, from 100% at each inferred cycle start to 0% at its reset. The guide is a locally calculated pace reference, not an additional official limit. Weekly rings place the current linear-pace reference beneath the actual ring, so a blue arc extends beyond the actual remaining arc whenever consumption is running ahead of that pace. When actual weekly remaining capacity is at least 10 percentage points below the current-cycle guide, the app and all widget sizes show a red warning lamp and render the actual weekly ring in red.
 
 The app does not assume that a five-hour window always exists. If Codex does not return a window with `windowDurationMins = 300`, the app shows it as currently unavailable. If the window is restored in a future response, the ring appears again automatically.
 
@@ -28,13 +28,10 @@ The app does not assume that a five-hour window always exists. If Codex does not
 - Official token usage: cumulative totals and daily buckets returned by Codex's `account/usage/read` method
 - Remaining-capacity history: the host app's bounded local record of current official `account/rateLimits/read` values, sampled after successful refreshes and retained for seven days
 - Weekly pace guide and warning: a local calculation from the official weekly remaining percentage, reset timestamp, and seven-day window duration
-- Per-project usage: a read-only aggregation of top-level local sessions in `$CODEX_HOME/state_5.sqlite`, or `~/.codex/state_5.sqlite` when `CODEX_HOME` is unset, that were updated during the seven-day period including today, grouped by `cwd`; this can include user sessions, automations, and legacy rows with an unknown source. The app uses those proportions to estimate how the official seven-day token total is distributed among projects. Subagents are excluded to avoid counting inherited parent context twice.
 
 The remaining-capacity chart is not an official historical series returned by Codex. It is a local history of official current values observed by this Mac every 15 minutes while the host app is running. The chart leaves gaps when the app was not recording, retains observed jumps when a limit resets, and automatically resumes the five-hour series if Codex reports that window again. Its dotted weekly guide repeats the current official reset cadence backward across the visible history as separate 100%-to-0% cycle segments; it does not predict future Codex usage or change the official limit.
 
-The per-project figures are estimates that distribute the official seven-day total according to locally observed proportions. A thread's `tokens_used` value is cumulative, so the app uses it only to calculate the proportions between projects; the displayed total comes from Codex's official aggregate. If that official total is unavailable or zero, the app does not display raw local counters as project usage. Cloud runs and activity on other Macs cannot be attributed to a local project, so this is not an exact breakdown.
-
-The app sends no local project-attribution data or analytics. It launches the locally installed Codex CLI, which may contact Codex services to retrieve account usage as part of its normal operation. See [PRIVACY.md](./PRIVACY.md) for the precise data and storage boundaries.
+The app sends no analytics. It launches the locally installed Codex CLI, which may contact Codex services to retrieve account usage as part of its normal operation. See [PRIVACY.md](./PRIVACY.md) for the precise data and storage boundaries.
 
 ## Build and Install
 
@@ -67,7 +64,7 @@ To install it manually:
 5. Confirm the first successful refresh in the menu bar, then open Edit Widgets on the desktop and add the localized `Codex Remaining Capacity` widget.
 6. To keep the data synchronized automatically, enable Launch at Login from the app's menu.
 
-The app detects Codex CLI through the current `PATH`, common Homebrew and npm locations, nvm, mise, asdf, Volta, or the `CODEX_EXECUTABLE` environment variable. The app refreshes every 15 minutes, records a bounded seven-day remaining-capacity history after successful refreshes, and lets the widget read both files from the App Group container. Enable Launch at Login if you want the history to continue across Mac restarts and login sessions.
+The app detects Codex CLI through the current `PATH`, common Homebrew and npm locations, nvm, mise, asdf, Volta, or the `CODEX_EXECUTABLE` environment variable. The app refreshes every 15 minutes, records a bounded seven-day remaining-capacity history after successful refreshes, and lets the widget read the resulting snapshot from the App Group container. Enable Launch at Login if you want the history to continue across Mac restarts and login sessions.
 
 The repository intentionally does not contain an Apple Development Team ID, certificate, private key, or provisioning profile. Keep personal values in `Config/Local.xcconfig`; do not copy them into `project.pbxproj`, `Config/Shared.xcconfig`, or another tracked file. The local file can be deleted and regenerated at any time.
 
@@ -79,11 +76,11 @@ The menu-bar app's Language control can override the system setting with English
 
 ## Resource Use
 
-The app queries the Codex app server briefly every 15 minutes and then returns to idle. It does not scan project directories or load project contents. Per-project estimates come from a read-only SQL aggregation of `$CODEX_HOME/state_5.sqlite`, or `~/.codex/state_5.sqlite` when `CODEX_HOME` is unset. Remaining-capacity history is capped at seven days: at a 15-minute cadence it contains at most about 673 samples, with both supported windows stored in each sample.
+The app queries the Codex app server briefly every 15 minutes and then returns to idle. It does not scan project directories, load project contents, or read the local Codex thread database. Remaining-capacity history is capped at seven days: at a 15-minute cadence it contains at most about 673 samples, with both supported windows stored in each sample.
 
 ## Privacy and Stability
 
-The app reads a narrow set of local Codex thread metadata and invokes the locally installed Codex CLI. It does not scan project directories, upload project attribution, or include telemetry. The latest snapshot remains in the configured App Group container shared by the app and widget; it includes the local project paths used for display. The account methods and local database schema used here are Codex implementation interfaces and may change in future Codex CLI releases.
+The app invokes the locally installed Codex CLI but does not scan project directories, read local thread metadata, or include telemetry. The latest account snapshot and bounded remaining-capacity history remain in the configured App Group container shared by the app and widget. The Codex account methods used here are implementation interfaces and may change in future Codex CLI releases.
 
 This is an independent, unofficial project and is not endorsed by or affiliated with OpenAI.
 

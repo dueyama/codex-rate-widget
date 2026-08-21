@@ -65,7 +65,7 @@ enum WidgetDisplayPreferences {
 struct SetWidgetChartModeIntent: AppIntent {
     static var title: LocalizedStringResource { "Change usage chart" }
     static var description: IntentDescription {
-        IntentDescription("Switches the large widget between daily token usage and locally recorded remaining capacity.")
+        IntentDescription("Switches the large widget between daily token usage and account remaining capacity recorded on this Mac.")
     }
     static var openAppWhenRun: Bool { false }
 
