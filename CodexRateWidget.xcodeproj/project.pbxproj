@@ -10,7 +10,6 @@
 		A10000000000000000000001 /* CodexRateWidgetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* CodexRateWidgetApp.swift */; };
 		A10000000000000000000002 /* UsageController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* UsageController.swift */; };
 		A10000000000000000000003 /* CodexRateLimitClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* CodexRateLimitClient.swift */; };
-		A10000000000000000000004 /* ProjectUsageAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* ProjectUsageAnalyzer.swift */; };
 		A10000000000000000000005 /* UsageSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* UsageSnapshot.swift */; };
 		A10000000000000000000006 /* CodexRateWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* CodexRateWidgetBundle.swift */; };
 		A10000000000000000000007 /* CodexUsageWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* CodexUsageWidget.swift */; };
@@ -65,7 +64,6 @@
 		A20000000000000000000001 /* CodexRateWidgetApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexRateWidgetApp.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* UsageController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageController.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* CodexRateLimitClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexRateLimitClient.swift; sourceTree = "<group>"; };
-		A20000000000000000000004 /* ProjectUsageAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectUsageAnalyzer.swift; sourceTree = "<group>"; };
 		A20000000000000000000005 /* UsageSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageSnapshot.swift; sourceTree = "<group>"; };
 		A20000000000000000000006 /* CodexRateWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexRateWidgetBundle.swift; sourceTree = "<group>"; };
 		A20000000000000000000007 /* CodexUsageWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexUsageWidget.swift; sourceTree = "<group>"; };
@@ -137,7 +135,6 @@
 				A20000000000000000000001 /* CodexRateWidgetApp.swift */,
 				A20000000000000000000002 /* UsageController.swift */,
 				A20000000000000000000003 /* CodexRateLimitClient.swift */,
-				A20000000000000000000004 /* ProjectUsageAnalyzer.swift */,
 				A2000000000000000000000E /* Assets.xcassets */,
 				A20000000000000000000009 /* Info.plist */,
 				A2000000000000000000000B /* CodexRateWidget.entitlements */,
@@ -322,7 +319,6 @@
 				A10000000000000000000001 /* CodexRateWidgetApp.swift in Sources */,
 				A10000000000000000000002 /* UsageController.swift in Sources */,
 				A10000000000000000000003 /* CodexRateLimitClient.swift in Sources */,
-				A10000000000000000000004 /* ProjectUsageAnalyzer.swift in Sources */,
 				A1000000000000000000000E /* BuildVersionInfo.swift in Sources */,
 				A10000000000000000000015 /* DisplayLanguage.swift in Sources */,
 				A10000000000000000000011 /* RemainingUsageHistory.swift in Sources */,

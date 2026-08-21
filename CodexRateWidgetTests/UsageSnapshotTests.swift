@@ -1,5 +1,4 @@
 import XCTest
-import SQLite3
 @testable import CodexRateWidget
 
 final class UsageSnapshotTests: XCTestCase {
@@ -27,6 +26,14 @@ final class UsageSnapshotTests: XCTestCase {
         XCTAssertNil(snapshot.fiveHour)
         XCTAssertNil(snapshot.weekly)
         XCTAssertEqual(snapshot.otherWindows, [daily])
+    }
+
+    func testOlderSnapshotWithLegacyProjectFieldsStillDecodes() throws {
+        let data = Data(#"{"otherWindows":[],"dailyTokenUsage":[],"projectUsage":[],"updatedAt":0}"#.utf8)
+
+        let snapshot = try JSONDecoder().decode(UsageSnapshot.self, from: data)
+
+        XCTAssertTrue(snapshot.dailyTokenUsage.isEmpty)
     }
 
     func testResetScheduleFormattingShowsDateAndRemainingTime() throws {
@@ -310,24 +317,16 @@ final class UsageSnapshotTests: XCTestCase {
             "5時間"
         )
         XCTAssertEqual(
-            japaneseBundle.localizedString(
-                forKey: "Local Estimate · Unofficial",
-                value: "Local Estimate · Unofficial",
-                table: nil
-            ),
-            "ローカル推定・非公式"
-        )
-        XCTAssertEqual(
             japaneseBundle.localizedString(forKey: "Weekly reset", value: "Weekly reset", table: nil),
             "週間リセット"
         )
         XCTAssertEqual(
             japaneseBundle.localizedString(
-                forKey: "Recorded on This Mac · Every 15 Minutes",
-                value: "Recorded on This Mac · Every 15 Minutes",
+                forKey: "Account Remaining · Saved on This Mac",
+                value: "Account Remaining · Saved on This Mac",
                 table: nil
             ),
-            "このMacの記録・15分間隔"
+            "アカウント残量・このMacに保存"
         )
         XCTAssertEqual(
             japaneseBundle.localizedString(forKey: "Daily Usage", value: "Daily Usage", table: nil),
@@ -353,49 +352,6 @@ final class UsageSnapshotTests: XCTestCase {
             ),
             "システム設定"
         )
-    }
-
-    func testProjectUsageOnlyIncludesThreadsUpdatedWithinSevenDays() throws {
-        let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: directory) }
-
-        let databasePath = directory.appendingPathComponent("state_5.sqlite").path
-        var database: OpaquePointer?
-        XCTAssertEqual(sqlite3_open(databasePath, &database), SQLITE_OK)
-        guard let database else { return XCTFail("Could not create test database") }
-        defer { sqlite3_close(database) }
-
-        XCTAssertEqual(sqlite3_exec(database, "CREATE TABLE threads (cwd TEXT, updated_at INTEGER, tokens_used INTEGER, thread_source TEXT)", nil, nil, nil), SQLITE_OK)
-
-        let now = Date(timeIntervalSince1970: 2_000_000_000)
-        let calendar = Calendar.current
-        let recent = Int(calendar.startOfDay(for: calendar.date(byAdding: .day, value: -6, to: now)!).timeIntervalSince1970)
-        let previousDay = Int(calendar.date(byAdding: .second, value: -1, to: Date(timeIntervalSince1970: TimeInterval(recent)))!.timeIntervalSince1970)
-        XCTAssertEqual(sqlite3_exec(database, "INSERT INTO threads VALUES ('/Recent', \(recent), 120, 'user'), ('/Recent', \(recent), 5000, 'subagent'), ('/PreviousDay', \(previousDay), 777, 'user')", nil, nil, nil), SQLITE_OK)
-
-        XCTAssertEqual(
-            ProjectUsageAnalyzer.analyze(databasePath: databasePath, days: 7, now: now),
-            []
-        )
-        XCTAssertEqual(
-            ProjectUsageAnalyzer.analyze(
-                databasePath: databasePath,
-                days: 7,
-                now: now,
-                officialTotalTokens: 0
-            ),
-            []
-        )
-
-        let normalized = ProjectUsageAnalyzer.analyze(
-            databasePath: databasePath,
-            days: 7,
-            now: now,
-            officialTotalTokens: 1_000
-        )
-        XCTAssertEqual(normalized, [ProjectTokenUsage(path: "/Recent", tokens: 1_000)])
     }
 
     func testUnitTestHostDoesNotStartLiveMonitoring() {

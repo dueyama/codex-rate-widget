@@ -90,12 +90,12 @@ private struct MenuContent: View {
                 LimitCard(
                     title: AppLocalization.string("5 hours", locale: locale),
                     window: controller.snapshot.fiveHour,
-                    paceWarning: false
+                    paceAssessment: nil
                 )
                 LimitCard(
                     title: AppLocalization.string("Weekly", locale: locale),
                     window: controller.snapshot.weekly,
-                    paceWarning: weeklyPaceAssessment?.isWarning == true
+                    paceAssessment: weeklyPaceAssessment
                 )
             }
 
@@ -235,7 +235,7 @@ private struct LimitCard: View {
     @Environment(\.locale) private var locale
     let title: String
     let window: RateLimitWindow?
-    let paceWarning: Bool
+    let paceAssessment: WeeklyPaceAssessment?
 
     var body: some View {
         VStack(spacing: 7) {
@@ -243,6 +243,22 @@ private struct LimitCard: View {
             ZStack {
                 Circle().stroke(.secondary.opacity(0.16), lineWidth: 7)
                 if let window {
+                    if
+                        let paceAssessment,
+                        paceAssessment.targetRemainingPercent > Double(window.remainingPercent)
+                    {
+                        Circle()
+                            .trim(
+                                from: 0,
+                                to: CGFloat(min(100, max(0, paceAssessment.targetRemainingPercent))) / 100
+                            )
+                            .stroke(
+                                Color.blue.opacity(0.38),
+                                style: StrokeStyle(lineWidth: 7, lineCap: .round)
+                            )
+                            .rotationEffect(.degrees(-90))
+                            .accessibilityHidden(true)
+                    }
                     Circle()
                         .trim(from: 0, to: CGFloat(window.remainingPercent) / 100)
                         .stroke(color, style: StrokeStyle(lineWidth: 7, lineCap: .round))
@@ -275,6 +291,10 @@ private struct LimitCard: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
+    }
+
+    private var paceWarning: Bool {
+        paceAssessment?.isWarning == true
     }
 
     private var color: Color {
@@ -359,7 +379,7 @@ private struct WeeklyPaceSection: View {
                                 point.seriesID
                             )
                         )
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.gray.opacity(0.82))
                         .lineStyle(StrokeStyle(lineWidth: 1.4, dash: [2, 3]))
                     }
 
@@ -391,13 +411,13 @@ private struct WeeklyPaceSection: View {
                 .chartXAxis(.hidden)
                 .chartYAxis {
                     AxisMarks(position: .leading, values: [0, 50, 100]) { value in
-                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                            .foregroundStyle(.secondary.opacity(0.15))
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 1))
+                            .foregroundStyle(Color.primary.opacity(0.28))
                         AxisValueLabel {
                             if let percent = value.as(Int.self) {
                                 Text("\(percent)%")
-                                    .font(.system(size: 8, design: .rounded))
-                                    .foregroundStyle(.secondary)
+                                    .font(.system(size: 8, weight: .medium, design: .rounded))
+                                    .foregroundStyle(Color.primary.opacity(0.65))
                             }
                         }
                     }

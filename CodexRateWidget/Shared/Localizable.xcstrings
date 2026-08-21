@@ -40,14 +40,8 @@
     "7-day pace" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "7日基準ペース" } } }
     },
-    "Approx. %@" : {
-      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "約%@" } } }
-    },
     "App Group is not configured. Select an Apple Development Team in Xcode." : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "App Group が設定されていません。Xcode で Apple Development Team を選択してください。" } } }
-    },
-    "By Project · Last 7 Days" : {
-      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "プロジェクト別 ・ 過去7日" } } }
     },
     "Change remaining history range" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り容量履歴の期間を変更" } } }
@@ -118,17 +112,8 @@
     "Lifetime %@" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "累計 %@" } } }
     },
-    "Local Estimate · Unofficial" : {
-      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "ローカル推定・非公式" } } }
-    },
     "No active limit" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "利用枠なし" } } }
-    },
-    "No official 7-day total is available to estimate" : {
-      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "推定に使える公式の過去7日合計がありません" } } }
-    },
-    "No local sessions are available to estimate" : {
-      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "集計できるローカルセッションはありません" } } }
     },
     "Not fetched" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "未取得" } } }
@@ -154,8 +139,8 @@
     "Refresh to update the weekly reset" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "更新して週間リセットを取得" } } }
     },
-    "Recorded on This Mac · Every 15 Minutes" : {
-      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "このMacの記録・15分間隔" } } }
+    "Account Remaining · Saved on This Mac" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "アカウント残量・このMacに保存" } } }
     },
     "Remaining" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り" } } }
@@ -172,17 +157,14 @@
     "Resets %@" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%@ に回復" } } }
     },
-    "Shows active Codex usage limits, token totals, and estimated usage by project." : {
-      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex の有効な利用枠、トークン量、プロジェクト別の推定使用量を表示します。" } } }
-    },
-    "Shows active Codex usage limits, token totals, remaining-capacity history, and estimated usage by project." : {
-      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex の有効な利用枠、トークン量、残り容量の履歴、プロジェクト別の推定使用量を表示します。" } } }
+    "Shows active Codex usage limits, token totals, and remaining-capacity history." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "Codex の有効な利用枠、トークン量、残り容量の履歴を表示します。" } } }
     },
     "Series" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "系列" } } }
     },
-    "Switches the large widget between daily token usage and locally recorded remaining capacity." : {
-      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "大型ウィジェットを日別トークン使用量とローカル記録の残り容量で切り替えます。" } } }
+    "Switches the large widget between daily token usage and account remaining capacity recorded on this Mac." : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "大型ウィジェットを日別トークン使用量と、このMacに記録したアカウント残量で切り替えます。" } } }
     },
     "Switches the remaining-capacity chart between the past 24 hours and the past 7 days." : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り容量グラフを過去24時間と過去7日で切り替えます。" } } }

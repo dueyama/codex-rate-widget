@@ -148,21 +148,13 @@ actor CodexRateLimitClient {
                 state.finish(.failure(ClientError.launchFailed(error.localizedDescription)))
             }
         }
-        let projects = ProjectUsageAnalyzer.analyze(officialTotalTokens: recentOfficialTokens(snapshot.dailyTokenUsage))
         return .make(
             windows: [snapshot.fiveHour, snapshot.weekly].compactMap { $0 } + snapshot.otherWindows,
             planType: snapshot.planType,
             dailyTokenUsage: snapshot.dailyTokenUsage,
             lifetimeTokens: snapshot.lifetimeTokens,
-            projectUsage: projects,
             updatedAt: snapshot.updatedAt
         )
-    }
-
-    private func recentOfficialTokens(_ usage: [DailyTokenUsage], now: Date = .now) -> Int64? {
-        let total = DailyUsageHistory.last(7, from: usage, through: now)
-            .reduce(Int64(0)) { $0 + $1.tokens }
-        return total > 0 ? total : nil
     }
 
     private func findCodexExecutable() throws -> URL {

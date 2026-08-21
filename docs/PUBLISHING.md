@@ -5,7 +5,7 @@ This project is intended for source distribution. The working folder can contain
 ## Recommended Repository Metadata
 
 - **Name:** `codex-rate-widget`
-- **Description:** `An unofficial macOS menu bar app and WidgetKit extension for Codex usage limits, official token totals, and local per-project estimates.`
+- **Description:** `An unofficial macOS menu bar app and WidgetKit extension for Codex usage limits, official token totals, and local usage history.`
 - **Topics:** `macos`, `swift`, `swiftui`, `widgetkit`, `codex`, `codex-cli`, `menu-bar`, `usage-monitor`
 - **License:** MIT
 

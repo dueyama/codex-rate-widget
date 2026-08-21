@@ -198,7 +198,6 @@ struct UsageSnapshot: Codable, Equatable, Sendable {
     let planType: String?
     let dailyTokenUsage: [DailyTokenUsage]
     let lifetimeTokens: Int64?
-    let projectUsage: [ProjectTokenUsage]
     let updatedAt: Date
 
     static let empty = UsageSnapshot(
@@ -208,7 +207,6 @@ struct UsageSnapshot: Codable, Equatable, Sendable {
         planType: nil,
         dailyTokenUsage: [],
         lifetimeTokens: nil,
-        projectUsage: [],
         updatedAt: .distantPast
     )
 
@@ -217,7 +215,6 @@ struct UsageSnapshot: Codable, Equatable, Sendable {
         planType: String?,
         dailyTokenUsage: [DailyTokenUsage] = [],
         lifetimeTokens: Int64? = nil,
-        projectUsage: [ProjectTokenUsage] = [],
         updatedAt: Date = .now
     ) -> UsageSnapshot {
         let fiveHour = windows.first { $0.windowDurationMins == 300 }
@@ -230,7 +227,6 @@ struct UsageSnapshot: Codable, Equatable, Sendable {
             planType: planType,
             dailyTokenUsage: dailyTokenUsage,
             lifetimeTokens: lifetimeTokens,
-            projectUsage: projectUsage,
             updatedAt: updatedAt
         )
     }
@@ -280,17 +276,6 @@ enum DailyUsageHistory {
             return nil
         }
         return date
-    }
-}
-
-struct ProjectTokenUsage: Codable, Equatable, Identifiable, Sendable {
-    let path: String
-    let tokens: Int64
-
-    var id: String { path }
-    var name: String {
-        let component = URL(fileURLWithPath: path).lastPathComponent
-        return component.isEmpty ? path : component
     }
 }
 

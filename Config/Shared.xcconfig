@@ -3,8 +3,8 @@ CODEX_RATE_WIDGET_BUNDLE_ID = com.example.CodexRateWidget
 CODEX_RATE_WIDGET_DEVELOPMENT_TEAM =
 
 // Single source of truth for the app and widget extension version.
-MARKETING_VERSION = 1.2.0
-CURRENT_PROJECT_VERSION = 10
+MARKETING_VERSION = 1.2.1
+CURRENT_PROJECT_VERSION = 11
 
 #include? "Local.xcconfig"
 

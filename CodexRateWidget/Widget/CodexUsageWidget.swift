@@ -23,11 +23,6 @@ struct UsageProvider: TimelineProvider {
             planType: "pro",
             dailyTokenUsage: placeholderDailyUsage(through: now),
             lifetimeTokens: 12_345_678,
-            projectUsage: [
-                .init(path: "/Projects/ExampleApp", tokens: 610_000),
-                .init(path: "/Projects/ResearchLab", tokens: 380_000),
-                .init(path: "/Projects/Documentation", tokens: 160_000)
-            ],
             updatedAt: now
         )
         return UsageEntry(
@@ -77,7 +72,7 @@ struct CodexUsageWidget: Widget {
             locale: configurationLocale
         )))
         .description(Text(verbatim: AppLocalization.string(
-            "Shows active Codex usage limits, token totals, remaining-capacity history, and estimated usage by project.",
+            "Shows active Codex usage limits, token totals, and remaining-capacity history.",
             locale: configurationLocale
         )))
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
@@ -102,8 +97,11 @@ private struct SmallUsageView: View {
     let entry: UsageEntry
 
     private var snapshot: UsageSnapshot { entry.snapshot }
+    private var weeklyPaceAssessment: WeeklyPaceAssessment? {
+        WeeklyPace.assessment(for: snapshot.weekly, at: snapshot.updatedAt)
+    }
     private var paceWarning: Bool {
-        WeeklyPace.assessment(for: snapshot.weekly, at: snapshot.updatedAt)?.isWarning == true
+        weeklyPaceAssessment?.isWarning == true
     }
 
     var body: some View {
@@ -123,7 +121,7 @@ private struct SmallUsageView: View {
                     title: AppLocalization.string("5 hours", locale: locale),
                     window: fiveHour,
                     size: 88,
-                    paceWarning: false
+                    paceAssessment: nil
                 )
                     .frame(maxWidth: .infinity)
             } else if let weekly = snapshot.weekly {
@@ -131,7 +129,7 @@ private struct SmallUsageView: View {
                     title: AppLocalization.string("Weekly", locale: locale),
                     window: weekly,
                     size: 88,
-                    paceWarning: paceWarning
+                    paceAssessment: weeklyPaceAssessment
                 )
                     .frame(maxWidth: .infinity)
             } else {
@@ -159,8 +157,11 @@ private struct MediumUsageView: View {
     let entry: UsageEntry
 
     private var snapshot: UsageSnapshot { entry.snapshot }
+    private var weeklyPaceAssessment: WeeklyPaceAssessment? {
+        WeeklyPace.assessment(for: snapshot.weekly, at: snapshot.updatedAt)
+    }
     private var paceWarning: Bool {
-        WeeklyPace.assessment(for: snapshot.weekly, at: snapshot.updatedAt)?.isWarning == true
+        weeklyPaceAssessment?.isWarning == true
     }
 
     var body: some View {
@@ -184,13 +185,13 @@ private struct MediumUsageView: View {
                 title: AppLocalization.string("5 hours", locale: locale),
                 window: snapshot.fiveHour,
                 size: 92,
-                paceWarning: false
+                paceAssessment: nil
             )
             LimitRing(
                 title: AppLocalization.string("Weekly", locale: locale),
                 window: snapshot.weekly,
                 size: 92,
-                paceWarning: paceWarning
+                paceAssessment: weeklyPaceAssessment
             )
         }
     }
@@ -201,8 +202,11 @@ private struct LargeUsageView: View {
     let entry: UsageEntry
 
     private var snapshot: UsageSnapshot { entry.snapshot }
+    private var weeklyPaceAssessment: WeeklyPaceAssessment? {
+        WeeklyPace.assessment(for: snapshot.weekly, at: snapshot.updatedAt)
+    }
     private var paceWarning: Bool {
-        WeeklyPace.assessment(for: snapshot.weekly, at: snapshot.updatedAt)?.isWarning == true
+        weeklyPaceAssessment?.isWarning == true
     }
 
     var body: some View {
@@ -226,40 +230,20 @@ private struct LargeUsageView: View {
                     title: AppLocalization.string("5 hours", locale: locale),
                     window: snapshot.fiveHour,
                     size: 76,
-                    paceWarning: false
+                    paceAssessment: nil
                 )
                 LimitRing(
                     title: AppLocalization.string("Weekly", locale: locale),
                     window: snapshot.weekly,
                     size: 76,
-                    paceWarning: paceWarning
+                    paceAssessment: weeklyPaceAssessment
                 )
             }
 
             Divider()
 
             UsageHistorySection(entry: entry, recentDailyUsage: recentDailyUsage)
-
-            Divider()
-
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    AppLocalizedText("By Project · Last 7 Days").font(.caption.weight(.semibold))
-                    Spacer()
-                    AppLocalizedText("Local Estimate · Unofficial").font(.caption2).foregroundStyle(.orange)
-                }
-                if recentOfficialTokenTotal <= 0 {
-                    AppLocalizedText("No official 7-day total is available to estimate")
-                        .font(.caption2).foregroundStyle(.secondary)
-                } else if snapshot.projectUsage.isEmpty {
-                    AppLocalizedText("No local sessions are available to estimate")
-                        .font(.caption2).foregroundStyle(.secondary)
-                } else {
-                    ForEach(snapshot.projectUsage.prefix(3)) { project in
-                        ProjectRow(project: project, maximum: snapshot.projectUsage.first?.tokens ?? 1)
-                    }
-                }
-            }
+                .frame(maxHeight: .infinity)
         }
     }
 
@@ -267,9 +251,6 @@ private struct LargeUsageView: View {
         DailyUsageHistory.last(7, from: snapshot.dailyTokenUsage)
     }
 
-    private var recentOfficialTokenTotal: Int64 {
-        recentDailyUsage.reduce(0) { $0 + $1.tokens }
-    }
 }
 
 private struct UsageHistorySection: View {
@@ -342,7 +323,7 @@ private struct UsageHistorySection: View {
         if recentDailyUsage.isEmpty {
             AppLocalizedText("Daily account data is currently unavailable")
                 .font(.caption2).foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, minHeight: 68)
+                .frame(maxWidth: .infinity, minHeight: 150)
         } else {
             DailyTokenChart(usage: recentDailyUsage)
         }
@@ -365,7 +346,7 @@ private struct UsageHistorySection: View {
         )
 
         HStack(spacing: 8) {
-            AppLocalizedText("Recorded on This Mac · Every 15 Minutes")
+            AppLocalizedText("Account Remaining · Saved on This Mac")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
@@ -380,7 +361,7 @@ private struct UsageHistorySection: View {
             AppLocalizedText("History begins after the app's next refresh")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, minHeight: 68)
+                .frame(maxWidth: .infinity, minHeight: 150)
         } else {
             RemainingCapacityChart(
                 points: points,
@@ -432,8 +413,8 @@ private struct RemainingHistoryLegend: View {
             if showsWeeklyPace {
                 HStack(spacing: 3) {
                     DottedPaceLine()
-                        .stroke(.secondary, style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
-                        .frame(width: 10, height: 4)
+                        .stroke(Color.gray.opacity(0.82), style: StrokeStyle(lineWidth: 1.3, dash: [2, 3]))
+                        .frame(width: 12, height: 4)
                     AppLocalizedText("7-day pace")
                         .font(.system(size: 8, weight: .medium, design: .rounded))
                         .foregroundStyle(.secondary)
@@ -458,7 +439,7 @@ private struct RemainingCapacityChart: View {
     let through: Date
 
     var body: some View {
-        VStack(spacing: 1) {
+        VStack(spacing: 6) {
             Chart {
                 ForEach(points) { point in
                     LineMark(
@@ -491,7 +472,7 @@ private struct RemainingCapacityChart: View {
                             point.seriesID
                         )
                     )
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.gray.opacity(0.82))
                     .lineStyle(StrokeStyle(lineWidth: 1.3, dash: [2, 3]))
                 }
 
@@ -515,18 +496,18 @@ private struct RemainingCapacityChart: View {
             .chartXAxis(.hidden)
             .chartYAxis {
                 AxisMarks(position: .leading, values: [0, 50, 100]) { value in
-                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                        .foregroundStyle(.secondary.opacity(0.18))
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 1))
+                        .foregroundStyle(Color.primary.opacity(0.28))
                     AxisValueLabel {
                         if let percent = value.as(Int.self) {
                             Text("\(percent)%")
                                 .font(.system(size: 7, weight: .medium, design: .rounded))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.primary.opacity(0.65))
                         }
                     }
                 }
             }
-            .frame(height: 51)
+            .frame(height: 133)
 
             HStack {
                 Text(verbatim: remainingHistoryAxisLabel(startDate, range: range, locale: locale))
@@ -536,8 +517,9 @@ private struct RemainingCapacityChart: View {
             .font(.system(size: 8, weight: .medium, design: .rounded))
             .monospacedDigit()
             .foregroundStyle(.secondary)
+            .padding(.leading, 28)
         }
-        .frame(height: 68)
+        .frame(height: 150)
     }
 
     private var startDate: Date {
@@ -573,7 +555,7 @@ private struct DailyTokenChart: View {
             }
             .chartXAxis(.hidden)
             .chartYAxis(.hidden)
-            .frame(height: 42)
+            .frame(height: 124)
 
             HStack(spacing: 0) {
                 ForEach(usage) { item in
@@ -588,7 +570,7 @@ private struct DailyTokenChart: View {
             }
             .accessibilityHidden(true)
         }
-        .frame(height: 68)
+        .frame(height: 150)
     }
 }
 
@@ -636,13 +618,29 @@ private struct LimitRing: View {
     let title: String
     let window: RateLimitWindow?
     let size: CGFloat
-    let paceWarning: Bool
+    let paceAssessment: WeeklyPaceAssessment?
 
     var body: some View {
         VStack(spacing: 3) {
             ZStack {
                 Circle().stroke(.secondary.opacity(0.15), lineWidth: max(6, size * 0.08))
                 if let window {
+                    if
+                        let paceAssessment,
+                        paceAssessment.targetRemainingPercent > Double(window.remainingPercent)
+                    {
+                        Circle()
+                            .trim(
+                                from: 0,
+                                to: CGFloat(min(100, max(0, paceAssessment.targetRemainingPercent))) / 100
+                            )
+                            .stroke(
+                                Color.blue.opacity(0.38),
+                                style: StrokeStyle(lineWidth: max(6, size * 0.08), lineCap: .round)
+                            )
+                            .rotationEffect(.degrees(-90))
+                            .accessibilityHidden(true)
+                    }
                     Circle()
                         .trim(from: 0, to: CGFloat(window.remainingPercent) / 100)
                         .stroke(color(window.remainingPercent), style: StrokeStyle(lineWidth: max(6, size * 0.08), lineCap: .round))
@@ -672,6 +670,10 @@ private struct LimitRing: View {
             }
             Text(title).font(.caption2.weight(.semibold))
         }
+    }
+
+    private var paceWarning: Bool {
+        paceAssessment?.isWarning == true
     }
 
     private func color(_ remaining: Int) -> Color {
@@ -731,36 +733,6 @@ private struct WidgetVersionLabel: View {
                 .fixedSize(horizontal: true, vertical: false)
                 .layoutPriority(1)
                 .accessibilityLabel(Text(verbatim: version.accessibilityLabel(locale: locale)))
-        }
-    }
-}
-
-private struct ProjectRow: View {
-    @Environment(\.locale) private var locale
-    let project: ProjectTokenUsage
-    let maximum: Int64
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Text(project.name).lineLimit(1).font(.caption2).frame(width: 92, alignment: .leading)
-            GeometryReader { geometry in
-                Capsule()
-                    .fill(.blue.opacity(0.22))
-                    .overlay(alignment: .leading) {
-                        Capsule()
-                            .fill(.blue.gradient)
-                            .frame(width: geometry.size.width * CGFloat(project.tokens) / CGFloat(max(1, maximum)))
-                    }
-            }
-            .frame(height: 7)
-            Text(verbatim: tokenCountLabel(project.tokens, locale: locale))
-                .font(.caption2.monospacedDigit())
-                .frame(width: 50, alignment: .trailing)
-                .accessibilityLabel(Text(verbatim: AppLocalization.format(
-                    "Approx. %@",
-                    locale: locale,
-                    tokenCountLabel(project.tokens, locale: locale)
-                )))
         }
     }
 }
