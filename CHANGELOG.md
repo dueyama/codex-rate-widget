@@ -6,6 +6,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-08-22
+
+### Added
+
+- Warning charts now show the pause without additional account usage needed for the seven-day pace line to catch the observed remaining percentage, formatted as days, hours, and minutes.
+- Warning charts now show a current-cycle linear-regression estimate for reaching 0%, without projecting a date beyond the official reset.
+
+### Changed
+
+- Moved the large widget's recovery-time callout to the historical side of the chart and clarified its English wording.
+
 ## [1.2.1] - 2026-08-21
 
 ### Changed

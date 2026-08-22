@@ -10,14 +10,23 @@
     "%@ remaining" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "残り %@" } } }
     },
+    "%dd %dh %dm" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d日%d時間%d分" } } }
+    },
     "%d days" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d日間" } } }
+    },
+    "%dh %dm" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d時間%d分" } } }
     },
     "%d hours" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d時間" } } }
     },
     "%d minutes" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d分間" } } }
+    },
+    "%dm" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d分" } } }
     },
     "5 hours" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "5時間" } } }
@@ -120,6 +129,24 @@
     },
     "Pace target %d%%" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "基準 %d%%" } } }
+    },
+    "Projected 0%%: %@" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "0%%予測：%@" } } }
+    },
+    "Projected 0%: after reset" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "0%予測：リセット後" } } }
+    },
+    "Projected 0%: collecting data" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "0%予測：計測中" } } }
+    },
+    "Projected 0%: no downward trend" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "0%予測：減少傾向なし" } } }
+    },
+    "Pause all account usage for %@ to return to the 7-day pace" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "7日基準ペースに戻るには、全端末で%@利用を控えてください" } } }
+    },
+    "Pause for %@ to get back on pace" : {
+      "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "点線まであと%@控える" } } }
     },
     "Daily Usage" : {
       "localizations" : { "ja" : { "stringUnit" : { "state" : "translated", "value" : "日別使用量" } } }

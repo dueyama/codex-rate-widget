@@ -69,10 +69,42 @@ struct RemainingUsageChartPoint: Equatable, Identifiable, Sendable {
     }
 }
 
+enum WeeklyZeroProjection: Equatable, Sendable {
+    case collectingData
+    case noDownwardTrend
+    case projected(Date)
+}
+
+enum WeeklyZeroProjectionFormatting {
+    static func shortLabel(
+        _ projection: WeeklyZeroProjection,
+        resetDate: Date,
+        locale: Locale = .current
+    ) -> String {
+        switch projection {
+        case .collectingData:
+            AppLocalization.string("Projected 0%: collecting data", locale: locale)
+        case .noDownwardTrend:
+            AppLocalization.string("Projected 0%: no downward trend", locale: locale)
+        case .projected(let date) where date >= resetDate:
+            AppLocalization.string("Projected 0%: after reset", locale: locale)
+        case .projected(let date):
+            AppLocalization.format(
+                "Projected 0%%: %@",
+                locale: locale,
+                ResetScheduleFormatting.dateTime(date, locale: locale)
+            )
+        }
+    }
+}
+
 struct RemainingUsageHistory: Codable, Equatable, Sendable {
     static let retentionInterval: TimeInterval = 7 * 86_400
     static let sampleInterval: TimeInterval = 15 * 60
     static let maximumContinuousGap: TimeInterval = 30 * 60
+    static let zeroProjectionMinimumSampleCount = 8
+    static let zeroProjectionMinimumDuration: TimeInterval = 6 * 3_600
+    static let zeroProjectionMaximumStaleness: TimeInterval = 30 * 60
 
     let samples: [RemainingUsageSample]
 
@@ -112,6 +144,62 @@ struct RemainingUsageHistory: Codable, Equatable, Sendable {
         return RemainingLimitKind.allCases.flatMap { kind in
             chartPoints(for: kind, from: relevantSamples)
         }
+    }
+
+    func weeklyZeroProjection(
+        for window: RateLimitWindow?,
+        through endDate: Date
+    ) -> WeeklyZeroProjection {
+        guard
+            let window,
+            window.windowDurationMins == WeeklyPace.durationMinutes,
+            let resetDate = window.resetDate
+        else { return .collectingData }
+
+        let cycleStart = resetDate.addingTimeInterval(-WeeklyPace.duration)
+        let cycleSamples = samples
+            .filter {
+                $0.capturedAt >= cycleStart
+                    && $0.capturedAt <= endDate
+                    && $0.weeklyRemainingPercent != nil
+            }
+            .sorted { $0.capturedAt < $1.capturedAt }
+
+        guard
+            cycleSamples.count >= Self.zeroProjectionMinimumSampleCount,
+            let firstDate = cycleSamples.first?.capturedAt,
+            let lastDate = cycleSamples.last?.capturedAt,
+            lastDate.timeIntervalSince(firstDate) >= Self.zeroProjectionMinimumDuration,
+            endDate.timeIntervalSince(lastDate) <= Self.zeroProjectionMaximumStaleness
+        else { return .collectingData }
+
+        let observations = cycleSamples.compactMap { sample -> (x: Double, y: Double)? in
+            guard let remaining = sample.weeklyRemainingPercent else { return nil }
+            return (
+                x: sample.capturedAt.timeIntervalSince(firstDate),
+                y: Double(remaining)
+            )
+        }
+        let count = Double(observations.count)
+        let meanX = observations.reduce(0) { $0 + $1.x } / count
+        let meanY = observations.reduce(0) { $0 + $1.y } / count
+        let covariance = observations.reduce(0) {
+            $0 + ($1.x - meanX) * ($1.y - meanY)
+        }
+        let variance = observations.reduce(0) {
+            $0 + ($1.x - meanX) * ($1.x - meanX)
+        }
+        guard variance > 0 else { return .collectingData }
+
+        let slope = covariance / variance
+        guard slope < 0 else { return .noDownwardTrend }
+        let intercept = meanY - slope * meanX
+        let zeroOffset = -intercept / slope
+        guard zeroOffset.isFinite else { return .noDownwardTrend }
+
+        let projectedDate = firstDate.addingTimeInterval(zeroOffset)
+        guard projectedDate > endDate else { return .noDownwardTrend }
+        return .projected(projectedDate)
     }
 
     private func chartPoints(

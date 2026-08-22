@@ -341,6 +341,9 @@ private struct WeeklyPaceSection: View {
             )
             let historyPoints = history.chartPoints(in: .sevenDays, through: through)
                 .filter { $0.kind == .weekly }
+            let zeroProjection = assessment.isWarning
+                ? history.weeklyZeroProjection(for: window, through: through)
+                : WeeklyZeroProjection.collectingData
 
             VStack(alignment: .leading, spacing: 5) {
                 HStack(spacing: 6) {
@@ -422,21 +425,92 @@ private struct WeeklyPaceSection: View {
                         }
                     }
                 }
+                .chartOverlay { _ in
+                    if let minutes = assessment.warningRecoveryMinutes {
+                        let duration = WeeklyPaceRecoveryFormatting.duration(
+                            minutes: minutes,
+                            locale: locale
+                        )
+                        let projectionLabel = WeeklyZeroProjectionFormatting.shortLabel(
+                            zeroProjection,
+                            resetDate: window.resetDate ?? through,
+                            locale: locale
+                        )
+                        VStack(spacing: 0) {
+                            HStack(spacing: 0) {
+                                Spacer(minLength: 0)
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(AppLocalization.format(
+                                        "Pause for %@ to get back on pace",
+                                        locale: locale,
+                                        duration
+                                    ))
+                                        .foregroundStyle(.red)
+                                    Text(verbatim: projectionLabel)
+                                        .foregroundStyle(.secondary)
+                                }
+                                    .font(.system(size: 8, weight: .semibold, design: .rounded))
+                                    .monospacedDigit()
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 3)
+                                    .background(
+                                        Color(nsColor: .windowBackgroundColor).opacity(0.92),
+                                        in: Capsule()
+                                    )
+                                    .overlay {
+                                        Capsule()
+                                            .stroke(Color.red.opacity(0.35), lineWidth: 0.7)
+                                    }
+                                    .accessibilityLabel(Text(verbatim: AppLocalization.format(
+                                        "Pause all account usage for %@ to return to the 7-day pace",
+                                        locale: locale,
+                                        duration
+                                    ) + ". " + projectionLabel))
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .padding(4)
+                        .allowsHitTesting(false)
+                    }
+                }
                 .frame(height: 58)
                 .padding(7)
                 .background(
                     assessment.isWarning ? Color.red.opacity(0.08) : Color.secondary.opacity(0.06),
                     in: RoundedRectangle(cornerRadius: 10)
                 )
-                .accessibilityLabel(Text(verbatim: paceAccessibilityLabel(assessment)))
+                .accessibilityLabel(Text(verbatim: paceAccessibilityLabel(
+                    assessment,
+                    zeroProjection: zeroProjection,
+                    resetDate: window.resetDate ?? through
+                )))
             }
         }
     }
 
-    private func paceAccessibilityLabel(_ assessment: WeeklyPaceAssessment) -> String {
+    private func paceAccessibilityLabel(
+        _ assessment: WeeklyPaceAssessment,
+        zeroProjection: WeeklyZeroProjection,
+        resetDate: Date
+    ) -> String {
         let key = assessment.isWarning
             ? "Weekly remaining is at least 10 points below the 7-day pace"
             : "Weekly remaining is within 10 points of the 7-day pace"
-        return AppLocalization.string(key, locale: locale)
+        let status = AppLocalization.string(key, locale: locale)
+        guard let minutes = assessment.warningRecoveryMinutes else { return status }
+        let duration = WeeklyPaceRecoveryFormatting.duration(minutes: minutes, locale: locale)
+        let recovery = AppLocalization.format(
+            "Pause all account usage for %@ to return to the 7-day pace",
+            locale: locale,
+            duration
+        )
+        let projection = WeeklyZeroProjectionFormatting.shortLabel(
+            zeroProjection,
+            resetDate: resetDate,
+            locale: locale
+        )
+        return status + ". " + recovery + ". " + projection
     }
 }

@@ -41,6 +41,14 @@ struct WeeklyPaceAssessment: Equatable, Sendable {
     var isWarning: Bool {
         shortfallPercent >= WeeklyPace.warningMarginPercent
     }
+
+    /// Whole minutes with no additional account use until the linear pace
+    /// line falls to the currently observed remaining percentage.
+    var warningRecoveryMinutes: Int? {
+        guard isWarning else { return nil }
+        let exactMinutes = shortfallPercent / 100 * Double(WeeklyPace.durationMinutes)
+        return max(1, Int(ceil(exactMinutes)))
+    }
 }
 
 struct WeeklyPacePoint: Equatable, Identifiable, Sendable {
@@ -58,7 +66,8 @@ struct WeeklyPacePoint: Equatable, Identifiable, Sendable {
 }
 
 enum WeeklyPace {
-    static let duration: TimeInterval = 7 * 86_400
+    static let durationMinutes = 10_080
+    static let duration: TimeInterval = TimeInterval(durationMinutes * 60)
     static let warningMarginPercent = 10.0
 
     static func assessment(
@@ -67,7 +76,7 @@ enum WeeklyPace {
     ) -> WeeklyPaceAssessment? {
         guard
             let window,
-            window.windowDurationMins == 10_080,
+            window.windowDurationMins == durationMinutes,
             let targetRemainingPercent = targetRemainingPercent(for: window, at: date)
         else { return nil }
 
@@ -85,7 +94,7 @@ enum WeeklyPace {
     ) -> [WeeklyPacePoint] {
         guard
             let window,
-            window.windowDurationMins == 10_080,
+            window.windowDurationMins == durationMinutes,
             let resetDate = window.resetDate,
             visibleStart < visibleEnd,
             targetRemainingPercent(for: window, at: visibleEnd) != nil
@@ -144,6 +153,34 @@ enum WeeklyPace {
         at date: Date
     ) -> Double {
         cycleEnd.timeIntervalSince(date) / duration * 100
+    }
+}
+
+enum WeeklyPaceRecoveryFormatting {
+    static func duration(minutes: Int, locale: Locale = .current) -> String {
+        let totalMinutes = max(0, minutes)
+        let days = totalMinutes / 1_440
+        let hours = totalMinutes % 1_440 / 60
+        let remainingMinutes = totalMinutes % 60
+
+        if days > 0 {
+            return AppLocalization.format(
+                "%dd %dh %dm",
+                locale: locale,
+                days,
+                hours,
+                remainingMinutes
+            )
+        }
+        if hours > 0 {
+            return AppLocalization.format(
+                "%dh %dm",
+                locale: locale,
+                hours,
+                remainingMinutes
+            )
+        }
+        return AppLocalization.format("%dm", locale: locale, remainingMinutes)
     }
 }
 

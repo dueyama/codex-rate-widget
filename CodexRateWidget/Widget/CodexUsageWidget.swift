@@ -344,6 +344,12 @@ private struct UsageHistorySection: View {
             for: entry.snapshot.weekly,
             at: entry.snapshot.updatedAt
         )
+        let zeroProjection = assessment?.isWarning == true
+            ? entry.remainingHistory.weeklyZeroProjection(
+                for: entry.snapshot.weekly,
+                through: entry.snapshot.updatedAt
+            )
+            : WeeklyZeroProjection.collectingData
 
         HStack(spacing: 8) {
             AppLocalizedText("Account Remaining · Saved on This Mac")
@@ -367,6 +373,8 @@ private struct UsageHistorySection: View {
                 points: points,
                 guidePoints: guidePoints,
                 weeklyAssessment: assessment,
+                weeklyZeroProjection: zeroProjection,
+                weeklyResetDate: entry.snapshot.weekly?.resetDate,
                 range: entry.historyRange,
                 through: entry.date
             )
@@ -435,6 +443,8 @@ private struct RemainingCapacityChart: View {
     let points: [RemainingUsageChartPoint]
     let guidePoints: [WeeklyPacePoint]
     let weeklyAssessment: WeeklyPaceAssessment?
+    let weeklyZeroProjection: WeeklyZeroProjection
+    let weeklyResetDate: Date?
     let range: RemainingHistoryRange
     let through: Date
 
@@ -505,6 +515,57 @@ private struct RemainingCapacityChart: View {
                                 .foregroundStyle(Color.primary.opacity(0.65))
                         }
                     }
+                }
+            }
+            .chartOverlay { _ in
+                if let minutes = weeklyAssessment?.warningRecoveryMinutes {
+                    let duration = WeeklyPaceRecoveryFormatting.duration(
+                        minutes: minutes,
+                        locale: locale
+                    )
+                    let projectionLabel = WeeklyZeroProjectionFormatting.shortLabel(
+                        weeklyZeroProjection,
+                        resetDate: weeklyResetDate ?? through,
+                        locale: locale
+                    )
+                    VStack(spacing: 0) {
+                        HStack(spacing: 0) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(AppLocalization.format(
+                                    "Pause for %@ to get back on pace",
+                                    locale: locale,
+                                    duration
+                                ))
+                                    .foregroundStyle(.red)
+                                Text(verbatim: projectionLabel)
+                                    .foregroundStyle(.secondary)
+                            }
+                                .font(.system(size: 8, weight: .semibold, design: .rounded))
+                                .monospacedDigit()
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 3)
+                                .background(
+                                    Color(nsColor: .windowBackgroundColor).opacity(0.92),
+                                    in: Capsule()
+                                )
+                                .overlay {
+                                    Capsule()
+                                        .stroke(Color.red.opacity(0.35), lineWidth: 0.7)
+                                }
+                                .accessibilityLabel(Text(verbatim: AppLocalization.format(
+                                    "Pause all account usage for %@ to return to the 7-day pace",
+                                    locale: locale,
+                                    duration
+                                ) + ". " + projectionLabel))
+                            Spacer(minLength: 0)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(4)
+                    .padding(.leading, 24)
+                    .allowsHitTesting(false)
                 }
             }
             .frame(height: 133)

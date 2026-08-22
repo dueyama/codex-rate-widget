@@ -104,10 +104,142 @@ final class UsageSnapshotTests: XCTestCase {
         XCTAssertEqual(onPaceAssessment.targetRemainingPercent, 50, accuracy: 0.001)
         XCTAssertEqual(onPaceAssessment.shortfallPercent, 0, accuracy: 0.001)
         XCTAssertFalse(onPaceAssessment.isWarning)
+        XCTAssertNil(onPaceAssessment.warningRecoveryMinutes)
 
         let warningAssessment = try XCTUnwrap(WeeklyPace.assessment(for: warning, at: now))
         XCTAssertEqual(warningAssessment.shortfallPercent, 10, accuracy: 0.001)
         XCTAssertTrue(warningAssessment.isWarning)
+        XCTAssertEqual(warningAssessment.warningRecoveryMinutes, 1_008)
+    }
+
+    func testWeeklyPaceRecoveryMinutesRoundUpUntilTheGuideCatchesActualRemaining() throws {
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        let resetDate = now.addingTimeInterval(WeeklyPace.duration / 2)
+        let warning = RateLimitWindow(
+            usedPercent: 61,
+            windowDurationMins: WeeklyPace.durationMinutes,
+            resetsAt: Int(resetDate.timeIntervalSince1970)
+        )
+
+        let assessment = try XCTUnwrap(WeeklyPace.assessment(for: warning, at: now))
+
+        XCTAssertEqual(assessment.shortfallPercent, 11, accuracy: 0.001)
+        XCTAssertEqual(assessment.warningRecoveryMinutes, 1_109)
+    }
+
+    func testWeeklyPaceRecoveryDurationUsesCompactLocalizedUnits() {
+        XCTAssertEqual(
+            WeeklyPaceRecoveryFormatting.duration(minutes: 1_109, locale: Locale(identifier: "en")),
+            "18h 29m"
+        )
+        XCTAssertEqual(
+            WeeklyPaceRecoveryFormatting.duration(minutes: 1_109, locale: Locale(identifier: "ja_JP")),
+            "18時間29分"
+        )
+        XCTAssertEqual(
+            WeeklyPaceRecoveryFormatting.duration(minutes: 1_563, locale: Locale(identifier: "en")),
+            "1d 2h 3m"
+        )
+        XCTAssertEqual(
+            WeeklyPaceRecoveryFormatting.duration(minutes: 1_563, locale: Locale(identifier: "ja_JP")),
+            "1日2時間3分"
+        )
+        XCTAssertEqual(
+            WeeklyPaceRecoveryFormatting.duration(minutes: 45, locale: Locale(identifier: "ja_JP")),
+            "45分"
+        )
+    }
+
+    func testWeeklyZeroProjectionUsesCurrentCycleLinearRegression() throws {
+        let cycleStart = Date(timeIntervalSince1970: 2_000_000_000)
+        let resetDate = cycleStart.addingTimeInterval(WeeklyPace.duration)
+        let samples = (0...12).map { hour in
+            RemainingUsageSample(
+                capturedAt: cycleStart.addingTimeInterval(Double(hour) * 3_600),
+                fiveHourRemainingPercent: nil,
+                weeklyRemainingPercent: 100 - hour * 2
+            )
+        }
+        let history = RemainingUsageHistory(samples: samples)
+        let window = RateLimitWindow(
+            usedPercent: 24,
+            windowDurationMins: WeeklyPace.durationMinutes,
+            resetsAt: Int(resetDate.timeIntervalSince1970)
+        )
+        let through = try XCTUnwrap(samples.last?.capturedAt)
+
+        guard case .projected(let projectedDate) = history.weeklyZeroProjection(
+            for: window,
+            through: through
+        ) else {
+            return XCTFail("Expected a projected zero date")
+        }
+
+        XCTAssertEqual(
+            projectedDate.timeIntervalSince(cycleStart),
+            50 * 3_600,
+            accuracy: 0.001
+        )
+    }
+
+    func testWeeklyZeroProjectionRequiresEnoughDataAndADownwardTrend() {
+        let cycleStart = Date(timeIntervalSince1970: 2_000_000_000)
+        let resetDate = cycleStart.addingTimeInterval(WeeklyPace.duration)
+        let window = RateLimitWindow(
+            usedPercent: 20,
+            windowDurationMins: WeeklyPace.durationMinutes,
+            resetsAt: Int(resetDate.timeIntervalSince1970)
+        )
+        let insufficientSamples = (0..<7).map { hour in
+            RemainingUsageSample(
+                capturedAt: cycleStart.addingTimeInterval(Double(hour) * 3_600),
+                fiveHourRemainingPercent: nil,
+                weeklyRemainingPercent: 90 - hour
+            )
+        }
+        let flatSamples = (0..<8).map { hour in
+            RemainingUsageSample(
+                capturedAt: cycleStart.addingTimeInterval(Double(hour) * 3_600),
+                fiveHourRemainingPercent: nil,
+                weeklyRemainingPercent: 80
+            )
+        }
+
+        XCTAssertEqual(
+            RemainingUsageHistory(samples: insufficientSamples).weeklyZeroProjection(
+                for: window,
+                through: insufficientSamples.last?.capturedAt ?? cycleStart
+            ),
+            .collectingData
+        )
+        XCTAssertEqual(
+            RemainingUsageHistory(samples: flatSamples).weeklyZeroProjection(
+                for: window,
+                through: flatSamples.last?.capturedAt ?? cycleStart
+            ),
+            .noDownwardTrend
+        )
+    }
+
+    func testWeeklyZeroProjectionFormattingDoesNotExtendPastTheOfficialReset() {
+        let resetDate = Date(timeIntervalSince1970: 2_000_000_000)
+
+        XCTAssertEqual(
+            WeeklyZeroProjectionFormatting.shortLabel(
+                .projected(resetDate.addingTimeInterval(60)),
+                resetDate: resetDate,
+                locale: Locale(identifier: "en")
+            ),
+            "Projected 0%: after reset"
+        )
+        XCTAssertEqual(
+            WeeklyZeroProjectionFormatting.shortLabel(
+                .collectingData,
+                resetDate: resetDate,
+                locale: Locale(identifier: "ja_JP")
+            ),
+            "0%予測：計測中"
+        )
     }
 
     func testWeeklyPaceRejectsMissingOrStaleWeeklyCycles() {
@@ -343,6 +475,22 @@ final class UsageSnapshotTests: XCTestCase {
         XCTAssertEqual(
             japaneseBundle.localizedString(forKey: "Language", value: "Language", table: nil),
             "言語"
+        )
+        XCTAssertEqual(
+            japaneseBundle.localizedString(
+                forKey: "Pause for %@ to get back on pace",
+                value: "Pause for %@ to get back on pace",
+                table: nil
+            ),
+            "点線まであと%@控える"
+        )
+        XCTAssertEqual(
+            japaneseBundle.localizedString(
+                forKey: "Projected 0%: collecting data",
+                value: "Projected 0%: collecting data",
+                table: nil
+            ),
+            "0%予測：計測中"
         )
         XCTAssertEqual(
             japaneseBundle.localizedString(
